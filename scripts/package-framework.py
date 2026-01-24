@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FRAMEWORK_DIR = ROOT / "framework"
 VERSION_FILE = FRAMEWORK_DIR / "VERSION"
 DEFAULT_OUT = ROOT / "framework.zip"
-EXCLUDE_DIRS = {"logs", "outbox", "__pycache__"}
+EXCLUDE_DIRS = {"logs", "outbox", "__pycache__", ".venv"}
 EXCLUDE_NAMES = {".DS_Store"}
 
 

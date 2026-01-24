@@ -24,6 +24,7 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 1) Copy `install-framework.sh` into the host project root.
 2) Run (downloads `framework.zip` from GitHub and installs into `./framework`, then runs orchestrator):
    `./install-framework.sh`
+   (creates a local venv and installs PyYAML automatically)
 
 ### Host prerequisites (before running the launcher)
 - Git repo initialized in the host project (remote is optional):
