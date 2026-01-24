@@ -52,3 +52,41 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 
 Summary: there is no explicit “read” command — it is automatic on session start. /init ≠ “read”.
 /init = “create template”; reading happens on the next launch.
+
+## AGENTS.md config (Codex)
+Where to edit
+- Codex config file: `~/.codex/config.toml` (or `$CODEX_HOME/config.toml` if `CODEX_HOME` is set).
+  Source: `developers.openai.com/codex/local-config`
+
+Keys to add
+- `project_doc_fallback_filenames` — list of alternative filenames Codex will look for if AGENTS.md is missing.
+- (optional) `project_doc_max_bytes` — cap on total bytes read from instructions.
+  Source: `developers.openai.com/codex/guides/agents-md/`
+
+Example (top-level, not inside sections)
+```\n# ~/.codex/config.toml\nproject_doc_fallback_filenames = [\"TEAM_GUIDE.md\", \".agents.md\"]\nproject_doc_max_bytes = 65536\n```
+
+Important
+- After changing `config.toml`, restart Codex / open a new session for settings to apply.
+  Source: `developers.openai.com/codex/guides/agents-md/`
+
+## AGENTS.md usage pattern (Codex)
+Important clarifications
+- Codex automatically reads only `AGENTS.md` (and `AGENTS.override.md`) at the start of a new session.
+  This is the entry instruction file, not a “launch script”.
+- This file should hold persistent project context: goals, constraints, commands, process,
+  key links, and a short snapshot.
+- The size is limited by `project_doc_max_bytes`, so keep AGENTS.md compact and push details
+  into separate files (for example, `SNAPSHOT.md`) and explicitly instruct the agent to read them.
+
+Practical pattern
+1) In `AGENTS.md` — short memory: what the project is, what is done, what to do next, rules/commands.
+2) In `SNAPSHOT.md` — the full status and details.
+3) In `AGENTS.md` — add a line: “Always read `SNAPSHOT.md` first.”
+
+Important limitation
+Codex does not read `SNAPSHOT.md` automatically — only `AGENTS.md`/`AGENTS.override.md` are auto‑loaded.
+If you need the snapshot to be always included, you must either:
+- embed key parts of the snapshot into `AGENTS.md`, or
+- temporarily rename `SNAPSHOT.md` to `AGENTS.md`, or
+- start a new session and manually say “read `SNAPSHOT.md`”.
