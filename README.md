@@ -24,6 +24,17 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
    `./install-framework.sh`
 3) The framework will be installed into `./framework`.
 
+## Report bundle + auto publish (host project)
+1) Export report bundle (redacts logs by default):
+   `python3 framework/tools/export-report.py --include-migration`
+2) Publish to central repo (creates PR by default):
+   `export GITHUB_TOKEN=...`
+   `python3 framework/tools/publish-report.py --repo alexeykrol/devframework --run-id <RUN_ID> --host-id <HOST_ID>`
+
+Notes:
+- The publish script pushes a report zip into `reports/<host>/<run_id>.zip` and opens a PR/Issue.
+- Redaction replaces obvious secrets in logs; turn off with `--no-redact` during export if needed.
+
 ## Outputs
 - `framework/logs/*.log`
 - `framework/logs/framework-run.jsonl`
