@@ -1,0 +1,37 @@
+# Оркестратор: базовая конфигурация
+# Относительные пути считаются от расположения этого файла,
+# далее все task-пути — от project_root.
+project_root: ../..
+logs_dir: logs
+
+# Профили запусков (можно переключать в tasks)
+runners:
+  codex:
+    command: "codex run --prompt {prompt}"
+  claude:
+    command: "claude-code --prompt {prompt}"
+  aider:
+    command: "aider --message-file {prompt}"
+
+# Задачи (пример)
+tasks:
+  - name: db-schema
+    branch: task/db-schema
+    worktree: ../incuragent-db
+    prompt: docs/tasks/db-schema.md
+    runner: codex
+    log: logs/db-schema.log
+
+  - name: business-logic
+    branch: task/business-logic
+    worktree: ../incuragent-logic
+    prompt: docs/tasks/business-logic.md
+    runner: codex
+    log: logs/business-logic.log
+
+  - name: ui
+    branch: task/ui
+    worktree: ../incuragent-ui
+    prompt: docs/tasks/ui.md
+    runner: codex
+    log: logs/ui.log
