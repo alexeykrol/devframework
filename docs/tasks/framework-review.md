@@ -11,6 +11,7 @@
 - `framework/orchestrator/orchestrator.yaml`
 
 ## Outputs
+- `framework-review/bundle.md`
 - `framework-review/framework-log-analysis.md`
 - `framework-review/framework-bug-report.md`
 - `framework-review/framework-fix-plan.md`

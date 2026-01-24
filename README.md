@@ -39,6 +39,7 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 3) Framework review outputs are written to `framework-review/`.
 4) If fixes are needed, run:
    `python3 framework/orchestrator/orchestrator.py --phase post --include-manual`
+5) Use `framework-review/bundle.md` as the single entry point for the third agent.
 
 ## AGENTS.md behavior (Codex)
 1) When AGENTS.md is read

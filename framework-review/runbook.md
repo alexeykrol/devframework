@@ -4,7 +4,9 @@
 - Файл `logs/framework-run.lock` должен отсутствовать.
 - Есть `docs/orchestrator-run-summary.md` и `logs/framework-run.jsonl`.
 
-## 2) Прочитать входные артефакты
+## 2) Заполнить bundle и прочитать входные артефакты
+- Заполнить `framework-review/bundle.md` по данным из summary и логов
+- `framework-review/bundle.md`
 - `docs/orchestrator-run-summary.md`
 - `logs/framework-run.jsonl`
 - `logs/*.log`
