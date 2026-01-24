@@ -5,6 +5,7 @@ REPO="${FRAMEWORK_REPO:-alexeykrol/devframework}"
 REF="${FRAMEWORK_REF:-main}"
 DEST_DIR="${FRAMEWORK_DEST:-.}"
 PHASE="${FRAMEWORK_PHASE:-}"
+TOKEN="${FRAMEWORK_TOKEN:-${GITHUB_TOKEN:-}}"
 
 ZIP_PATH=""
 UPDATE_FLAG=0
@@ -20,6 +21,7 @@ Options:
   --ref <ref>            Branch or tag (default: main)
   --zip <path>           Use local framework.zip instead of downloading
   --dest <dir>           Install destination (default: .)
+  --token <token>        GitHub token for private repos (or env FRAMEWORK_TOKEN/GITHUB_TOKEN)
   --update               Replace existing framework (backup is created)
   --run                  Run orchestrator after install
   --phase <main|legacy>  Force phase when running
@@ -29,6 +31,7 @@ Options:
 
 Env overrides:
   FRAMEWORK_REPO, FRAMEWORK_REF, FRAMEWORK_DEST, FRAMEWORK_PHASE
+  FRAMEWORK_TOKEN (or GITHUB_TOKEN)
   FRAMEWORK_UPDATE=1, FRAMEWORK_RUN=1
 EOF
 }
@@ -42,17 +45,34 @@ truthy() {
 
 fetch_url() {
   local url="$1"
+  local accept_raw="${2:-}"
   if command -v curl >/dev/null 2>&1; then
-    curl -fsSL "$url"
+    if [[ -n "$TOKEN" ]]; then
+      if [[ -n "$accept_raw" ]]; then
+        curl -fsSL -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github.raw" "$url"
+      else
+        curl -fsSL -H "Authorization: token $TOKEN" "$url"
+      fi
+    else
+      curl -fsSL "$url"
+    fi
     return $?
   fi
-  python3 - <<'PY' "$url"
+  python3 - <<'PY' "$url" "$TOKEN" "$accept_raw"
 import sys
 import urllib.request
 url = sys.argv[1]
+token = sys.argv[2] if len(sys.argv) > 2 else ""
+accept_raw = sys.argv[3] if len(sys.argv) > 3 else ""
+headers = {}
+if token:
+    headers["Authorization"] = f"token {token}"
+if accept_raw:
+    headers["Accept"] = "application/vnd.github.raw"
 try:
-    with urllib.request.urlopen(url) as resp:
-        sys.stdout.write(resp.read().decode("utf-8"))
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req) as resp:
+        sys.stdout.buffer.write(resp.read())
 except Exception as exc:
     sys.stderr.write(str(exc))
     sys.exit(1)
@@ -67,6 +87,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --ref)
       REF="$2"
+      shift 2
+      ;;
+    --token)
+      TOKEN="$2"
       shift 2
       ;;
     --zip)
@@ -121,8 +145,28 @@ if truthy "${FRAMEWORK_RUN:-}"; then
   RUN_FLAG=1
 fi
 
-ZIP_URL="${FRAMEWORK_ZIP_URL:-https://github.com/${REPO}/raw/${REF}/framework.zip}"
-VERSION_URL="${FRAMEWORK_VERSION_URL:-https://raw.githubusercontent.com/${REPO}/${REF}/framework/VERSION}"
+ZIP_URL="${FRAMEWORK_ZIP_URL:-}"
+VERSION_URL="${FRAMEWORK_VERSION_URL:-}"
+ZIP_ACCEPT=""
+VERSION_ACCEPT=""
+
+if [[ -z "$ZIP_URL" ]]; then
+  if [[ -n "$TOKEN" ]]; then
+    ZIP_URL="https://api.github.com/repos/${REPO}/contents/framework.zip?ref=${REF}"
+    ZIP_ACCEPT="raw"
+  else
+    ZIP_URL="https://github.com/${REPO}/raw/${REF}/framework.zip"
+  fi
+fi
+
+if [[ -z "$VERSION_URL" ]]; then
+  if [[ -n "$TOKEN" ]]; then
+    VERSION_URL="https://api.github.com/repos/${REPO}/contents/framework/VERSION?ref=${REF}"
+    VERSION_ACCEPT="raw"
+  else
+    VERSION_URL="https://raw.githubusercontent.com/${REPO}/${REF}/framework/VERSION"
+  fi
+fi
 
 FRAMEWORK_DIR="${DEST_DIR%/}/framework"
 LOCAL_VERSION=""
@@ -133,7 +177,7 @@ if [[ -f "$FRAMEWORK_DIR/VERSION" ]]; then
 fi
 
 if [[ -z "$ZIP_PATH" ]]; then
-  if REMOTE_VERSION="$(fetch_url "$VERSION_URL" 2>/dev/null)"; then
+  if REMOTE_VERSION="$(fetch_url "$VERSION_URL" "$VERSION_ACCEPT" 2>/dev/null)"; then
     REMOTE_VERSION="$(printf '%s' "$REMOTE_VERSION" | tr -d '\r' | head -n1)"
   else
     REMOTE_VERSION=""
@@ -180,8 +224,11 @@ if [[ "$SKIP_INSTALL" -ne 1 ]]; then
   if [[ -z "$ZIP_PATH" ]]; then
     TMP_ZIP="$(mktemp -t devframework.XXXXXX.zip)"
     trap 'rm -f "$TMP_ZIP"' EXIT
-    if ! fetch_url "$ZIP_URL" > "$TMP_ZIP"; then
+    if ! fetch_url "$ZIP_URL" "$ZIP_ACCEPT" > "$TMP_ZIP"; then
       echo "Failed to download framework zip from $ZIP_URL" >&2
+      if [[ -z "$TOKEN" ]]; then
+        echo "If the repo is private, set FRAMEWORK_TOKEN or GITHUB_TOKEN." >&2
+      fi
       exit 1
     fi
     ZIP_PATH="$TMP_ZIP"
