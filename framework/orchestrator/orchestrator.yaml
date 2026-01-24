@@ -35,3 +35,22 @@ tasks:
     prompt: docs/tasks/ui.md
     runner: codex
     log: logs/ui.log
+
+  - name: test-plan
+    branch: task/test-plan
+    worktree: ../incuragent-test-plan
+    prompt: docs/tasks/test-plan.md
+    runner: codex
+    log: logs/test-plan.log
+
+  - name: review
+    branch: task/review
+    worktree: ../incuragent-review
+    prompt: docs/tasks/review.md
+    runner: codex
+    depends_on:
+      - db-schema
+      - business-logic
+      - ui
+      - test-plan
+    log: logs/review.log
