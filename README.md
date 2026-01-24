@@ -22,8 +22,8 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Install in a host project (launcher)
 1) Copy `install-framework.sh` into the host project root.
-2) Run (downloads `framework.zip` from GitHub and installs into `./framework`):
-   `./install-framework.sh --run`
+2) Run (downloads `framework.zip` from GitHub and installs into `./framework`, then runs orchestrator):
+   `./install-framework.sh`
 
 ### Host prerequisites (before running the launcher)
 - Git repo initialized in the host project (remote is optional):
@@ -56,7 +56,7 @@ Auto-detection:
 ## End-to-end flows (memory cheatsheet)
 
 ### A) New project (clean host)
-1) `./install-framework.sh --run`
+1) `./install-framework.sh`
 2) Orchestrator runs `--phase main`.
 3) Dev flow completes → parallel review flow uses `framework/review/`.
 4) Optional post-run framework QA:
@@ -64,7 +64,7 @@ Auto-detection:
 5) Auto-publish (optional): set `FRAMEWORK_REPORTING_*` env vars before step 1.
 
 ### B) Legacy project (migration + safety)
-1) `./install-framework.sh --run` (auto-detects legacy, runs `--phase legacy`)
+1) `./install-framework.sh` (auto-detects legacy, runs `--phase legacy`)
 2) Review migration artifacts:
    - `framework/migration/legacy-snapshot.md`
    - `framework/migration/legacy-tech-spec.md`
@@ -104,17 +104,17 @@ Auto-detection:
    - (optional) `FRAMEWORK_REPORTING_INCLUDE_REVIEW=1`
    - (optional) `FRAMEWORK_REPORTING_INCLUDE_TASK_LOGS=1`
    - `GITHUB_TOKEN=...`
-2) `./install-framework.sh --run`
+2) `./install-framework.sh`
 3) PR/issue will be created automatically in `devframework`.
 
 ## Minimal quick start (one‑liners)
 New project:
 ```
-FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh --run
+FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh
 ```
 Legacy project:
 ```
-FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh --run --phase legacy
+FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh --phase legacy
 ```
 
 ## Build release zip (maintainers)

@@ -9,7 +9,7 @@ TOKEN="${FRAMEWORK_TOKEN:-${GITHUB_TOKEN:-}}"
 
 ZIP_PATH=""
 UPDATE_FLAG=0
-RUN_FLAG=0
+RUN_FLAG=1
 SKIP_INSTALL=0
 
 usage() {
@@ -23,7 +23,8 @@ Options:
   --dest <dir>           Install destination (default: .)
   --token <token>        GitHub token for private repos (or env FRAMEWORK_TOKEN/GITHUB_TOKEN)
   --update               Replace existing framework (backup is created)
-  --run                  Run orchestrator after install
+  --run                  Run orchestrator after install (default)
+  --no-run               Skip running orchestrator
   --phase <main|legacy>  Force phase when running
   --legacy               Shortcut for --phase legacy
   --main                 Shortcut for --phase main
@@ -32,7 +33,7 @@ Options:
 Env overrides:
   FRAMEWORK_REPO, FRAMEWORK_REF, FRAMEWORK_DEST, FRAMEWORK_PHASE
   FRAMEWORK_TOKEN (or GITHUB_TOKEN)
-  FRAMEWORK_UPDATE=1, FRAMEWORK_RUN=1
+  FRAMEWORK_UPDATE=1, FRAMEWORK_RUN=1 (set to 0 to skip run)
 EOF
 }
 
@@ -109,6 +110,10 @@ while [[ $# -gt 0 ]]; do
       RUN_FLAG=1
       shift
       ;;
+    --no-run)
+      RUN_FLAG=0
+      shift
+      ;;
     --phase)
       PHASE="$2"
       shift 2
@@ -141,8 +146,12 @@ done
 if truthy "${FRAMEWORK_UPDATE:-}"; then
   UPDATE_FLAG=1
 fi
-if truthy "${FRAMEWORK_RUN:-}"; then
-  RUN_FLAG=1
+if [[ -n "${FRAMEWORK_RUN:-}" ]]; then
+  if truthy "${FRAMEWORK_RUN}"; then
+    RUN_FLAG=1
+  else
+    RUN_FLAG=0
+  fi
 fi
 
 ZIP_URL="${FRAMEWORK_ZIP_URL:-}"
@@ -205,7 +214,11 @@ if [[ -d "$FRAMEWORK_DIR" && "$UPDATE_FLAG" -ne 1 ]]; then
   else
     echo "Framework already installed at $FRAMEWORK_DIR" >&2
     echo "Remote version unknown. Re-run with --update or --zip to replace." >&2
-    exit 1
+    if [[ "$RUN_FLAG" -eq 1 ]]; then
+      SKIP_INSTALL=1
+    else
+      exit 1
+    fi
   fi
 fi
 
