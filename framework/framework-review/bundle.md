@@ -12,7 +12,7 @@
 - `framework/logs/framework-run.jsonl`
 - `framework/logs/` (task logs)
 - `framework/orchestrator/orchestrator.py`
-- `framework/orchestrator/orchestrator.yaml`
+- `framework/orchestrator/orchestrator.json`
 
 ## Commands
 - Main run command:

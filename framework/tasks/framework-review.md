@@ -8,7 +8,7 @@
 - `framework/docs/orchestrator-run-summary.md`
 - `framework/logs/*.log`
 - `framework/orchestrator/orchestrator.py`
-- `framework/orchestrator/orchestrator.yaml`
+- `framework/orchestrator/orchestrator.json`
 
 ## Outputs
 - `framework/framework-review/bundle.md`

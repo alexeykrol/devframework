@@ -25,10 +25,10 @@ Python удобнее для:
 
 ## 3) Как выглядит процесс
 1) Подготовить **мини‑задачи** в `framework/tasks/*.md`.
-2) Настроить список задач в `framework/orchestrator/orchestrator.yaml`.
+2) Настроить список задач в `framework/orchestrator/orchestrator.json`.
 3) Запустить:
    ```bash
-   python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.yaml
+   python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.json
    ```
 4) Оркестратор:
    - создаст worktree для каждой задачи,

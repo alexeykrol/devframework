@@ -11,7 +11,6 @@ PYTHON_BIN="${FRAMEWORK_PYTHON:-python3}"
 ZIP_PATH=""
 UPDATE_FLAG=0
 RUN_FLAG=1
-VENV_FLAG=1
 SKIP_INSTALL=0
 
 usage() {
@@ -27,7 +26,6 @@ Options:
   --update               Replace existing framework (backup is created)
   --run                  Run orchestrator after install (default)
   --no-run               Skip running orchestrator
-  --no-venv              Skip creating a venv and installing PyYAML
   --phase <main|legacy>  Force phase when running
   --legacy               Shortcut for --phase legacy
   --main                 Shortcut for --phase main
@@ -37,7 +35,6 @@ Env overrides:
   FRAMEWORK_REPO, FRAMEWORK_REF, FRAMEWORK_DEST, FRAMEWORK_PHASE
   FRAMEWORK_TOKEN (or GITHUB_TOKEN)
   FRAMEWORK_PYTHON (default: python3)
-  FRAMEWORK_NO_VENV=1
   FRAMEWORK_UPDATE=1, FRAMEWORK_RUN=1 (set to 0 to skip run)
 EOF
 }
@@ -119,10 +116,6 @@ while [[ $# -gt 0 ]]; do
       RUN_FLAG=0
       shift
       ;;
-    --no-venv)
-      VENV_FLAG=0
-      shift
-      ;;
     --phase)
       PHASE="$2"
       shift 2
@@ -161,9 +154,6 @@ if [[ -n "${FRAMEWORK_RUN:-}" ]]; then
   else
     RUN_FLAG=0
   fi
-fi
-if truthy "${FRAMEWORK_NO_VENV:-}"; then
-  VENV_FLAG=0
 fi
 
 ZIP_URL="${FRAMEWORK_ZIP_URL:-}"
@@ -330,28 +320,9 @@ PY
     exit 1
   fi
 
-  ORCH_PY="$PYTHON_BIN"
-  if [[ "$VENV_FLAG" -eq 1 ]]; then
-    VENV_DIR="$FRAMEWORK_DIR/.venv"
-    if [[ ! -x "$VENV_DIR/bin/python" ]]; then
-      if ! "$PYTHON_BIN" -m venv "$VENV_DIR"; then
-        echo "Failed to create venv at $VENV_DIR" >&2
-        exit 1
-      fi
-    fi
-    ORCH_PY="$VENV_DIR/bin/python"
-    if ! "$ORCH_PY" -c "import yaml" >/dev/null 2>&1; then
-      if ! "$ORCH_PY" -m pip -q install pyyaml; then
-        echo "Failed to install PyYAML. If you are offline, set FRAMEWORK_NO_VENV=1" >&2
-        echo "and ensure PyYAML is available in your Python environment." >&2
-        exit 1
-      fi
-    fi
-  fi
-
   echo "Running orchestrator (phase: $PHASE)"
-  "$ORCH_PY" "$FRAMEWORK_DIR/orchestrator/orchestrator.py" \
-    --config "$FRAMEWORK_DIR/orchestrator/orchestrator.yaml" \
+  "$PYTHON_BIN" "$FRAMEWORK_DIR/orchestrator/orchestrator.py" \
+    --config "$FRAMEWORK_DIR/orchestrator/orchestrator.json" \
     --phase "$PHASE"
 fi
 

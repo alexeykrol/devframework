@@ -11,7 +11,7 @@
 - `framework/logs/framework-run.jsonl`
 - `framework/logs/*.log`
 - `framework/orchestrator/orchestrator.py`
-- `framework/orchestrator/orchestrator.yaml`
+- `framework/orchestrator/orchestrator.json`
 
 ## 3) Заполнить анализ
 - `framework/framework-review/framework-log-analysis.md`

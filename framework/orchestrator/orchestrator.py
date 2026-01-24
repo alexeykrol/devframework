@@ -9,10 +9,9 @@ import uuid
 from pathlib import Path
 
 try:
-    import yaml
+    import yaml  # type: ignore
 except ImportError:
-    print("PyYAML is required. Install with: pip install pyyaml")
-    sys.exit(1)
+    yaml = None
 
 
 def run(cmd, cwd=None):
@@ -108,6 +107,31 @@ def ensure_worktree(project_root: Path, worktree_path: Path, branch: str):
 
 
 def load_config(path: Path):
+    suffix = path.suffix.lower()
+    if suffix == ".json":
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f) or {}
+    if suffix in (".yml", ".yaml"):
+        if yaml is None:
+            fallback = path.with_suffix(".json")
+            if fallback.exists():
+                return load_config(fallback)
+            raise RuntimeError(
+                "PyYAML is required to read YAML config. "
+                f"Install PyYAML or use JSON config: {fallback}"
+            )
+        with path.open("r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f)
+        return cfg or {}
+    # Unknown suffix: try JSON then YAML
+    if path.exists():
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                return json.load(f) or {}
+        except json.JSONDecodeError:
+            pass
+    if yaml is None:
+        raise RuntimeError(f"Unsupported config format: {path}")
     with path.open("r", encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     return cfg or {}
@@ -178,7 +202,7 @@ def build_command(runners, task, prompt_path: Path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="framework/orchestrator/orchestrator.yaml")
+    parser.add_argument("--config", default="framework/orchestrator/orchestrator.json")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--phase", choices=["main", "post", "legacy"], default="main")
     parser.add_argument("--include-manual", action="store_true")

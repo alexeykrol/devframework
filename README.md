@@ -16,15 +16,14 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Quick start
 1) Fill in the task files in `framework/tasks/*.md`.
-2) Review `framework/orchestrator/orchestrator.yaml`.
+2) Review `framework/orchestrator/orchestrator.json`.
 3) Run:
-   `python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.yaml`
+   `python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.json`
 
 ## Install in a host project (launcher)
 1) Copy `install-framework.sh` into the host project root.
 2) Run (downloads `framework.zip` from GitHub and installs into `./framework`, then runs orchestrator):
    `./install-framework.sh`
-   (creates a local venv and installs PyYAML automatically)
 
 ### Host prerequisites (before running the launcher)
 - Git repo initialized in the host project (remote is optional):
@@ -133,7 +132,7 @@ Use `--version <value>` to update `framework/VERSION`.
    `python3 framework/tools/publish-report.py --repo alexeykrol/devframework --run-id <RUN_ID> --host-id <HOST_ID>`
 
 Auto-publish from orchestrator (no manual command):
-- Set `reporting` in `framework/orchestrator/orchestrator.yaml` or via env vars:
+- Set `reporting` in `framework/orchestrator/orchestrator.json` or via env vars:
   - `FRAMEWORK_REPORTING_ENABLED=1`
   - `FRAMEWORK_REPORTING_REPO=alexeykrol/devframework`
   - `FRAMEWORK_REPORTING_MODE=pr|issue|both`
