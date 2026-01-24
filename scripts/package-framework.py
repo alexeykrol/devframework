@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import base64
 import subprocess
 import time
 import zipfile
@@ -9,8 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 FRAMEWORK_DIR = ROOT / "framework"
 VERSION_FILE = FRAMEWORK_DIR / "VERSION"
 DEFAULT_OUT = ROOT / "framework.zip"
+INSTALLER_PATH = ROOT / "install-framework.sh"
 EXCLUDE_DIRS = {"logs", "outbox", "__pycache__"}
 EXCLUDE_NAMES = {".DS_Store"}
+EMBED_BEGIN = "__FRAMEWORK_ZIP_PAYLOAD_BEGIN__"
+EMBED_END = "__FRAMEWORK_ZIP_PAYLOAD_END__"
 
 
 def git_short():
@@ -66,6 +70,18 @@ def main() -> None:
 
     print(f"Framework packaged: {out_path}")
     print(f"Version: {version}")
+
+    if INSTALLER_PATH.exists():
+        content_lines = INSTALLER_PATH.read_text(encoding="utf-8", errors="ignore").splitlines()
+        if EMBED_BEGIN in content_lines and EMBED_END in content_lines:
+            payload = base64.b64encode(out_path.read_bytes()).decode("ascii")
+            chunked = [payload[i:i + 76] for i in range(0, len(payload), 76)]
+            start_idx = content_lines.index(EMBED_BEGIN)
+            end_idx = content_lines.index(EMBED_END)
+            if end_idx > start_idx:
+                new_lines = content_lines[:start_idx + 1] + chunked + content_lines[end_idx:]
+                INSTALLER_PATH.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+                print(f"Installer updated with embedded zip: {INSTALLER_PATH}")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,7 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Install in a host project (launcher)
 1) Copy `install-framework.sh` into the host project root.
-2) Run (downloads `framework.zip` from GitHub and installs into `./framework`, then runs orchestrator):
+2) Run (self-contained installer; installs into `./framework` and runs orchestrator):
    `./install-framework.sh`
 
 ### Host prerequisites (before running the launcher)
