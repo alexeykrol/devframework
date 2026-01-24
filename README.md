@@ -36,6 +36,60 @@ Auto-detection:
 - If the host root contains files other than `.git`, `framework/`, `framework.zip`, or
   `install-framework.sh`, the launcher assumes a legacy project and runs `--phase legacy`.
 
+## End-to-end flows (memory cheatsheet)
+
+### A) New project (clean host)
+1) `./install-framework.sh --run`
+2) Orchestrator runs `--phase main`.
+3) Dev flow completes → parallel review flow uses `framework/review/`.
+4) Optional post-run framework QA:
+   `python3 framework/orchestrator/orchestrator.py --phase post`
+5) Auto-publish (optional): set `FRAMEWORK_REPORTING_*` env vars before step 1.
+
+### B) Legacy project (migration + safety)
+1) `./install-framework.sh --run` (auto-detects legacy, runs `--phase legacy`)
+2) Review migration artifacts:
+   - `framework/migration/legacy-snapshot.md`
+   - `framework/migration/legacy-tech-spec.md`
+   - `framework/migration/legacy-gap-report.md`
+   - `framework/migration/legacy-risk-assessment.md`
+   - `framework/migration/legacy-migration-plan.md`
+   - `framework/migration/legacy-migration-proposal.md`
+3) Human approval gate:
+   - Fill `framework/migration/approval.md`
+4) Apply changes in isolated branch:
+   `python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual`
+   (branch name includes `legacy-migration-<run_id>`)
+5) Run review/tests, then merge manually if safe.
+6) Optional framework QA (post-run) and auto-publish.
+
+### C) Framework improvement loop (3rd agent)
+1) Main or legacy run finishes.
+2) Framework QA (post phase):
+   `python3 framework/orchestrator/orchestrator.py --phase post`
+3) Output:
+   - `framework/framework-review/framework-log-analysis.md`
+   - `framework/framework-review/framework-bug-report.md`
+   - `framework/framework-review/framework-fix-plan.md`
+4) Apply fixes between runs:
+   `python3 framework/orchestrator/orchestrator.py --phase post --include-manual`
+5) Rebuild release zip if framework changed:
+   `python3 scripts/package-framework.py --version <new_version>`
+
+### D) Auto‑report publishing (no manual steps)
+1) Set env before running the launcher:
+   - `FRAMEWORK_REPORTING_ENABLED=1`
+   - `FRAMEWORK_REPORTING_REPO=alexeykrol/devframework`
+   - `FRAMEWORK_REPORTING_MODE=pr|issue|both`
+   - `FRAMEWORK_REPORTING_HOST_ID=<host>`
+   - `FRAMEWORK_REPORTING_PHASES=legacy,main,post`
+   - (optional) `FRAMEWORK_REPORTING_INCLUDE_MIGRATION=1`
+   - (optional) `FRAMEWORK_REPORTING_INCLUDE_REVIEW=1`
+   - (optional) `FRAMEWORK_REPORTING_INCLUDE_TASK_LOGS=1`
+   - `GITHUB_TOKEN=...`
+2) `./install-framework.sh --run`
+3) PR/issue will be created automatically in `devframework`.
+
 ## Build release zip (maintainers)
 ```
 python3 scripts/package-framework.py
