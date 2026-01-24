@@ -22,7 +22,7 @@ reporting:
 # Профили запусков (можно переключать в tasks)
 runners:
   codex:
-    command: "codex run --prompt {prompt}"
+    command: "codex exec - < \"{prompt}\""
   claude:
     command: "claude-code --prompt {prompt}"
   aider:
