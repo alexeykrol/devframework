@@ -1,9 +1,9 @@
 # Release Checklist
 
 1) Все E2E тесты прошли.
-2) Независимый review выполнен (см. `review/`).
-3) Handoff для ревью подготовлен (`review/handoff.md`).
-4) Framework review выполнен (см. `framework-review/`).
+2) Независимый review выполнен (см. `framework/review/`).
+3) Handoff для ревью подготовлен (`framework/review/handoff.md`).
+4) Framework review выполнен (см. `framework/framework-review/`).
 5) Проверен critical flow: Wizard → Results → Report → PDF.
 6) Проверены auth и подписки (mock/real).
 7) Проверены уведомления email/web‑push (mock/real).

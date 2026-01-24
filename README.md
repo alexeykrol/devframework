@@ -5,49 +5,57 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 ## Structure
 - framework/orchestrator/ - script and YAML config
 - framework/docs/ - process docs, checklists, orchestration plan
-- docs/tasks/ - task mini-spec templates
-- review/ - independent review artifacts and runbook
-- framework-review/ - framework QA artifacts (third flow)
-- migration/ - legacy migration analysis and safety artifacts
+- framework/tasks/ - task mini-spec templates
+- framework/review/ - independent review artifacts and runbook
+- framework/framework-review/ - framework QA artifacts (third flow)
+- framework/migration/ - legacy migration analysis and safety artifacts
+- framework.zip - portable bundle for host projects
+- install-framework.sh - installer for framework.zip
 
 ## Quick start
-1) Fill in the task files in `docs/tasks/*.md`.
+1) Fill in the task files in `framework/tasks/*.md`.
 2) Review `framework/orchestrator/orchestrator.yaml`.
 3) Run:
    `python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.yaml`
 
+## Zip install (host project)
+1) Copy `framework.zip` and `install-framework.sh` into the host project root.
+2) Run:
+   `./install-framework.sh`
+3) The framework will be installed into `./framework`.
+
 ## Outputs
-- `logs/*.log`
-- `logs/framework-run.jsonl`
-- `docs/orchestrator-run-summary.md`
-- `review/*.md`
-- `framework-review/*.md`
-- `migration/*.md`
+- `framework/logs/*.log`
+- `framework/logs/framework-run.jsonl`
+- `framework/docs/orchestrator-run-summary.md`
+- `framework/review/*.md`
+- `framework/framework-review/*.md`
+- `framework/migration/*.md`
 
 ## Notes
 - Relative paths in YAML are resolved from the config file; task paths are resolved from `project_root`.
 - The repo must be a git repository (for `git worktree`).
-- `logs/framework-run.lock` exists only during an active main run; post-run tasks require it to be absent.
+- `framework/logs/framework-run.lock` exists only during an active main run; post-run tasks require it to be absent.
 
 ## Parallel review flow (two-agent)
-1) Dev agent completes tasks and prepares `review/handoff.md` (and test results if any).
-2) In parallel, a second agent uses `review/runbook.md` and `review/review-brief.md` to run review/testing.
-3) Review outputs go to `review/` and are fed back to the dev agent.
+1) Dev agent completes tasks and prepares `framework/review/handoff.md` (and test results if any).
+2) In parallel, a second agent uses `framework/review/runbook.md` and `framework/review/review-brief.md` to run review/testing.
+3) Review outputs go to `framework/review/` and are fed back to the dev agent.
 
 ## Framework QA flow (third agent, post-run)
-1) Main run finishes and `logs/framework-run.lock` is removed.
+1) Main run finishes and `framework/logs/framework-run.lock` is removed.
 2) Run post phase:
    `python3 framework/orchestrator/orchestrator.py --phase post`
-3) Framework review outputs are written to `framework-review/`.
+3) Framework review outputs are written to `framework/framework-review/`.
 4) If fixes are needed, run:
    `python3 framework/orchestrator/orchestrator.py --phase post --include-manual`
-5) Use `framework-review/bundle.md` as the single entry point for the third agent.
+5) Use `framework/framework-review/bundle.md` as the single entry point for the third agent.
 
 ## Legacy migration flow (read-only + approval gate)
 1) Run legacy analysis phase:
    `python3 framework/orchestrator/orchestrator.py --phase legacy`
-2) Review artifacts in `migration/`.
-3) Human approval in `migration/approval.md`.
+2) Review artifacts in `framework/migration/`.
+3) Human approval in `framework/migration/approval.md`.
 4) Apply changes in isolated branch (manual):
    `python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual`
    (branch name: `legacy-migration-<run_id>`)

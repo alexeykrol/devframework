@@ -2,7 +2,7 @@
 # Относительные пути считаются от расположения этого файла,
 # далее все task-пути — от project_root.
 project_root: ../..
-logs_dir: logs
+logs_dir: framework/logs
 
 # Профили запусков (можно переключать в tasks)
 runners:
@@ -18,116 +18,116 @@ tasks:
   - name: db-schema
     branch: task/db-schema
     worktree: ../incuragent-db
-    prompt: docs/tasks/db-schema.md
+    prompt: framework/tasks/db-schema.md
     runner: codex
-    log: logs/db-schema.log
+    log: framework/logs/db-schema.log
 
   - name: business-logic
     branch: task/business-logic
     worktree: ../incuragent-logic
-    prompt: docs/tasks/business-logic.md
+    prompt: framework/tasks/business-logic.md
     runner: codex
-    log: logs/business-logic.log
+    log: framework/logs/business-logic.log
 
   - name: ui
     branch: task/ui
     worktree: ../incuragent-ui
-    prompt: docs/tasks/ui.md
+    prompt: framework/tasks/ui.md
     runner: codex
-    log: logs/ui.log
+    log: framework/logs/ui.log
 
   - name: test-plan
     branch: task/test-plan
     worktree: ../incuragent-test-plan
-    prompt: docs/tasks/test-plan.md
+    prompt: framework/tasks/test-plan.md
     runner: codex
-    log: logs/test-plan.log
+    log: framework/logs/test-plan.log
 
   - name: review-prep
     branch: task/review-prep
     worktree: ../incuragent-review-prep
-    prompt: docs/tasks/review-prep.md
+    prompt: framework/tasks/review-prep.md
     runner: codex
     depends_on:
       - db-schema
       - business-logic
       - ui
-    log: logs/review-prep.log
+    log: framework/logs/review-prep.log
 
   - name: review
     branch: task/review
     worktree: ../incuragent-review
-    prompt: docs/tasks/review.md
+    prompt: framework/tasks/review.md
     runner: codex
     depends_on:
       - test-plan
       - review-prep
-    log: logs/review.log
+    log: framework/logs/review.log
 
   - name: framework-review
     phase: post
     branch: task/framework-review
     worktree: ../incuragent-framework-review
-    prompt: docs/tasks/framework-review.md
+    prompt: framework/tasks/framework-review.md
     runner: codex
-    log: logs/framework-review.log
+    log: framework/logs/framework-review.log
 
   - name: framework-fix
     phase: post
     manual: true
     branch: task/framework-fix
     worktree: ../incuragent-framework-fix
-    prompt: docs/tasks/framework-fix.md
+    prompt: framework/tasks/framework-fix.md
     runner: codex
     depends_on:
       - framework-review
-    log: logs/framework-fix.log
+    log: framework/logs/framework-fix.log
 
   - name: legacy-audit
     phase: legacy
     branch: task/legacy-audit
     worktree: ../incuragent-legacy-audit
-    prompt: docs/tasks/legacy-audit.md
+    prompt: framework/tasks/legacy-audit.md
     runner: codex
-    log: logs/legacy-audit.log
+    log: framework/logs/legacy-audit.log
 
   - name: legacy-tech-spec
     phase: legacy
     branch: task/legacy-tech-spec
     worktree: ../incuragent-legacy-tech-spec
-    prompt: docs/tasks/legacy-tech-spec.md
+    prompt: framework/tasks/legacy-tech-spec.md
     runner: codex
     depends_on:
       - legacy-audit
-    log: logs/legacy-tech-spec.log
+    log: framework/logs/legacy-tech-spec.log
 
   - name: legacy-gap
     phase: legacy
     branch: task/legacy-gap
     worktree: ../incuragent-legacy-gap
-    prompt: docs/tasks/legacy-gap.md
+    prompt: framework/tasks/legacy-gap.md
     runner: codex
     depends_on:
       - legacy-tech-spec
-    log: logs/legacy-gap.log
+    log: framework/logs/legacy-gap.log
 
   - name: legacy-migration-plan
     phase: legacy
     branch: task/legacy-migration-plan
     worktree: ../incuragent-legacy-migration-plan
-    prompt: docs/tasks/legacy-migration-plan.md
+    prompt: framework/tasks/legacy-migration-plan.md
     runner: codex
     depends_on:
       - legacy-gap
-    log: logs/legacy-migration-plan.log
+    log: framework/logs/legacy-migration-plan.log
 
   - name: legacy-apply
     phase: legacy
     manual: true
     branch: legacy-migration-{run_id}
     worktree: ../incuragent-legacy-migration-{run_id}
-    prompt: docs/tasks/legacy-apply.md
+    prompt: framework/tasks/legacy-apply.md
     runner: codex
     depends_on:
       - legacy-migration-plan
-    log: logs/legacy-apply-{run_id}.log
+    log: framework/logs/legacy-apply-{run_id}.log

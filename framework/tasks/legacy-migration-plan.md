@@ -4,13 +4,13 @@
 Сформировать план миграции без изменения кода.
 
 ## Inputs
-- `migration/legacy-gap-report.md`
-- `migration/legacy-risk-assessment.md`
+- `framework/migration/legacy-gap-report.md`
+- `framework/migration/legacy-risk-assessment.md`
 
 ## Outputs
-- `migration/legacy-migration-plan.md`
-- `migration/legacy-migration-proposal.md`
-- `migration/rollback-plan.md`
+- `framework/migration/legacy-migration-plan.md`
+- `framework/migration/legacy-migration-proposal.md`
+- `framework/migration/rollback-plan.md`
 
 ## Rules
 - Не менять код.

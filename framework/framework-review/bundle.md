@@ -8,9 +8,9 @@
 - Finished:
 
 ## Quick links
-- `docs/orchestrator-run-summary.md`
-- `logs/framework-run.jsonl`
-- `logs/` (task logs)
+- `framework/docs/orchestrator-run-summary.md`
+- `framework/logs/framework-run.jsonl`
+- `framework/logs/` (task logs)
 - `framework/orchestrator/orchestrator.py`
 - `framework/orchestrator/orchestrator.yaml`
 

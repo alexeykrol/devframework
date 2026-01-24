@@ -4,12 +4,12 @@
 Сравнить legacy с фреймворком и выявить пробелы/риски.
 
 ## Inputs
-- `migration/legacy-tech-spec.md`
+- `framework/migration/legacy-tech-spec.md`
 - `framework/docs/orchestrator-plan-ru.md`
 
 ## Outputs
-- `migration/legacy-gap-report.md`
-- `migration/legacy-risk-assessment.md`
+- `framework/migration/legacy-gap-report.md`
+- `framework/migration/legacy-risk-assessment.md`
 
 ## Rules
 - Не менять код.

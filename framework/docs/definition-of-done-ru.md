@@ -10,9 +10,9 @@
 ## Для релиза
 - Все E2E тесты проходят.
 - Все critical flows проверены вручную.
-- Независимый review выполнен (отчёт в `review/`).
-- Handoff для ревью подготовлен (`review/handoff.md`).
-- Framework review выполнен (см. `framework-review/`).
+- Независимый review выполнен (отчёт в `framework/review/`).
+- Handoff для ревью подготовлен (`framework/review/handoff.md`).
+- Framework review выполнен (см. `framework/framework-review/`).
 - Для legacy‑проектов: миграция прошла через approval и отдельную ветку.
 - Миграции БД применены.
 - Rollback план подготовлен.

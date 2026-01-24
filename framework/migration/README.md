@@ -11,14 +11,14 @@
  - Ветка миграции создаётся автоматически как `legacy-migration-<run_id>`.
 
 ## Выходные артефакты
-- `migration/legacy-snapshot.md` — объективная картина проекта
-- `migration/legacy-tech-spec.md` — обратное ТЗ из кода
-- `migration/legacy-gap-report.md` — чего не хватает относительно фреймворка
-- `migration/legacy-risk-assessment.md` — риски и критичные зоны
-- `migration/legacy-migration-plan.md` — поэтапный план миграции
-- `migration/legacy-migration-proposal.md` — предложение к одобрению
-- `migration/approval.md` — решение человека
-- `migration/rollback-plan.md` — план отката
+- `framework/migration/legacy-snapshot.md` — объективная картина проекта
+- `framework/migration/legacy-tech-spec.md` — обратное ТЗ из кода
+- `framework/migration/legacy-gap-report.md` — чего не хватает относительно фреймворка
+- `framework/migration/legacy-risk-assessment.md` — риски и критичные зоны
+- `framework/migration/legacy-migration-plan.md` — поэтапный план миграции
+- `framework/migration/legacy-migration-proposal.md` — предложение к одобрению
+- `framework/migration/approval.md` — решение человека
+- `framework/migration/rollback-plan.md` — план отката
 
 ## Этапы
 1) **Legacy Audit (read‑only)**
@@ -30,4 +30,4 @@
 7) **Review + Tests**
 8) **Merge (manual)**
 
-Подробные шаги: `migration/runbook.md`.
+Подробные шаги: `framework/migration/runbook.md`.

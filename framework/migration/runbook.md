@@ -13,15 +13,15 @@ python3 framework/orchestrator/orchestrator.py --phase legacy
 ```
 
 ## 2) Сформировать артефакты
-- `migration/legacy-snapshot.md`
-- `migration/legacy-tech-spec.md`
-- `migration/legacy-gap-report.md`
-- `migration/legacy-risk-assessment.md`
-- `migration/legacy-migration-plan.md`
-- `migration/legacy-migration-proposal.md`
+- `framework/migration/legacy-snapshot.md`
+- `framework/migration/legacy-tech-spec.md`
+- `framework/migration/legacy-gap-report.md`
+- `framework/migration/legacy-risk-assessment.md`
+- `framework/migration/legacy-migration-plan.md`
+- `framework/migration/legacy-migration-proposal.md`
 
 ## 3) Approval Gate
-- Человек заполняет `migration/approval.md`.
+- Человек заполняет `framework/migration/approval.md`.
 - Без approval изменения запрещены.
 
 ## 4) Создать ветку миграции (изолированно)
@@ -40,5 +40,5 @@ python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual
 - Если что-то пошло не так — откат через reset/rollback в main.
 
 ## 7) Post‑merge контроль
-- Обновить `migration/legacy-migration-plan.md` статусами.
-- Сохранить итог в `migration/legacy-migration-proposal.md`.
+- Обновить `framework/migration/legacy-migration-plan.md` статусами.
+- Сохранить итог в `framework/migration/legacy-migration-proposal.md`.

@@ -7,11 +7,11 @@
 - `framework/docs/definition-of-done-ru.md`
 - `framework/docs/orchestrator-plan-ru.md`
 - `docs/tech-spec-ru.md` (если есть)
-- `review/review-brief.md`
-- `review/handoff.md` (если есть)
+- `framework/review/review-brief.md`
+- `framework/review/handoff.md` (если есть)
 
 ## Outputs
-- `review/test-plan.md` (по шаблону из `review/`)
+- `framework/review/test-plan.md` (по шаблону из `framework/review/`)
 
 ## Rules
 - Не менять код.

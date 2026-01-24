@@ -8,7 +8,7 @@
 - `framework/docs/definition-of-done-ru.md`
 
 ## Outputs
-- `migration/legacy-snapshot.md`
+- `framework/migration/legacy-snapshot.md`
 
 ## Rules
 - Никаких правок кода.

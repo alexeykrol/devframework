@@ -4,10 +4,10 @@
 Сформировать обратное ТЗ из существующего кода.
 
 ## Inputs
-- `migration/legacy-snapshot.md`
+- `framework/migration/legacy-snapshot.md`
 
 ## Outputs
-- `migration/legacy-tech-spec.md`
+- `framework/migration/legacy-tech-spec.md`
 
 ## Rules
 - Не менять код.

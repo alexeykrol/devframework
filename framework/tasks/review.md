@@ -4,17 +4,17 @@
 Провести независимое код‑ревью и QA по готовой реализации.
 
 ## Inputs
-- `review/test-plan.md`
-- `review/review-brief.md`
-- `review/handoff.md`
+- `framework/review/test-plan.md`
+- `framework/review/review-brief.md`
+- `framework/review/handoff.md`
 - `framework/docs/definition-of-done-ru.md`
-- `docs/orchestrator-run-summary.md` (если есть)
+- `framework/docs/orchestrator-run-summary.md` (если есть)
 
 ## Outputs
-- `review/code-review-report.md`
-- `review/bug-report.md`
-- `review/qa-coverage.md`
-- `review/test-results.md` (если прогонялись тесты)
+- `framework/review/code-review-report.md`
+- `framework/review/bug-report.md`
+- `framework/review/qa-coverage.md`
+- `framework/review/test-results.md` (если прогонялись тесты)
 
 ## Rules
 - Не менять код, только отчёты.

@@ -4,20 +4,20 @@
 Проанализировать работу фреймворка и сформировать баг‑репорт на основании логов.
 
 ## Inputs
-- `logs/framework-run.jsonl`
-- `docs/orchestrator-run-summary.md`
-- `logs/*.log`
+- `framework/logs/framework-run.jsonl`
+- `framework/docs/orchestrator-run-summary.md`
+- `framework/logs/*.log`
 - `framework/orchestrator/orchestrator.py`
 - `framework/orchestrator/orchestrator.yaml`
 
 ## Outputs
-- `framework-review/bundle.md`
-- `framework-review/framework-log-analysis.md`
-- `framework-review/framework-bug-report.md`
-- `framework-review/framework-fix-plan.md`
+- `framework/framework-review/bundle.md`
+- `framework/framework-review/framework-log-analysis.md`
+- `framework/framework-review/framework-bug-report.md`
+- `framework/framework-review/framework-fix-plan.md`
 
 ## Rules
-- Запускать только между прогонами (нет `logs/framework-run.lock`).
+- Запускать только между прогонами (нет `framework/logs/framework-run.lock`).
 - Код не изменять, только отчёты.
 
 ## Done When

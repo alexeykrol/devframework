@@ -111,47 +111,47 @@
 ### 3.9 Test Plan (Independent)
 **Цель:** составить независимый план тестирования.
 - Основание: ТЗ + DoD.
-- Выход: `review/test-plan.md`.
+- Выход: `framework/review/test-plan.md`.
 - Без изменения кода.
 
 ### 3.10 Review Handoff Prep
 **Цель:** подготовить пакет для независимого ревью.
 - Вход: commit/branch, результаты тестов (если есть).
-- Выход: `review/handoff.md`, `review/bundle.md`, `review/test-results.md` (опционально).
+- Выход: `framework/review/handoff.md`, `framework/review/bundle.md`, `framework/review/test-results.md` (опционально).
 - Без изменения кода.
 
 ### 3.11 Independent Review
 **Цель:** независимое код‑ревью и QA.
-- Вход: `review/test-plan.md`, `review/review-brief.md`.
-- Выход: `review/code-review-report.md`, `review/bug-report.md`, `review/qa-coverage.md`.
+- Вход: `framework/review/test-plan.md`, `framework/review/review-brief.md`.
+- Выход: `framework/review/code-review-report.md`, `framework/review/bug-report.md`, `framework/review/qa-coverage.md`.
 - Без изменения кода.
 
 ### 3.12 Framework Review (post-run)
 **Цель:** анализ работы оркестратора и ошибок фреймворка.
-- Вход: `logs/framework-run.jsonl`, `docs/orchestrator-run-summary.md`.
-- Выход: `framework-review/framework-log-analysis.md`, `framework-review/framework-bug-report.md`.
-- Запускать только между прогонами (нет `logs/framework-run.lock`).
+- Вход: `framework/logs/framework-run.jsonl`, `framework/docs/orchestrator-run-summary.md`.
+- Выход: `framework/framework-review/framework-log-analysis.md`, `framework/framework-review/framework-bug-report.md`.
+- Запускать только между прогонами (нет `framework/logs/framework-run.lock`).
 - Запуск: `python3 framework/orchestrator/orchestrator.py --phase post`.
 
 ### 3.13 Framework Fix (post-run, manual)
 **Цель:** исправить ошибки фреймворка по итогам Framework Review.
-- Вход: `framework-review/framework-bug-report.md`, `framework-review/framework-fix-plan.md`.
+- Вход: `framework/framework-review/framework-bug-report.md`, `framework/framework-review/framework-fix-plan.md`.
 - Выход: исправления в коде фреймворка.
 - Запускать только между прогонами.
 
 ### 3.14 Legacy Migration (read-only)
 **Цель:** проанализировать legacy‑проект и подготовить безопасный план миграции.
 - Вход: репозиторий (read‑only), `framework/docs/orchestrator-plan-ru.md`.
-- Выход: `migration/legacy-snapshot.md`, `migration/legacy-tech-spec.md`,
-  `migration/legacy-gap-report.md`, `migration/legacy-risk-assessment.md`,
-  `migration/legacy-migration-plan.md`, `migration/legacy-migration-proposal.md`,
-  `migration/rollback-plan.md`.
+- Выход: `framework/migration/legacy-snapshot.md`, `framework/migration/legacy-tech-spec.md`,
+  `framework/migration/legacy-gap-report.md`, `framework/migration/legacy-risk-assessment.md`,
+  `framework/migration/legacy-migration-plan.md`, `framework/migration/legacy-migration-proposal.md`,
+  `framework/migration/rollback-plan.md`.
 - Запуск: `python3 framework/orchestrator/orchestrator.py --phase legacy`.
 - Изменения применяются только после approval и в отдельной ветке.
 
 ### 3.15 Legacy Apply (manual)
 **Цель:** применить изменения в отдельной ветке после одобрения.
-- Вход: `migration/approval.md`, `migration/legacy-migration-plan.md`.
+- Вход: `framework/migration/approval.md`, `framework/migration/legacy-migration-plan.md`.
 - Выход: изменения в ветке `legacy-migration`.
 - Запуск: `python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual`.
 

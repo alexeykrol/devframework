@@ -6,12 +6,12 @@
 ## Inputs
 - Текущий commit/branch
 - `framework/docs/definition-of-done-ru.md`
-- `review/review-brief.md`
+- `framework/review/review-brief.md`
 
 ## Outputs
-- `review/handoff.md`
-- `review/bundle.md`
-- `review/test-results.md` (если прогонялись тесты)
+- `framework/review/handoff.md`
+- `framework/review/bundle.md`
+- `framework/review/test-results.md` (если прогонялись тесты)
 
 ## Rules
 - Не менять код.

@@ -14,7 +14,7 @@
 - `runbook.md` — пошаговый запуск ревью (worktree)
 
 ## Рекомендуемый процесс
-1) Dev‑агент заполняет `review/handoff.md` (и `review/test-results.md`, если тесты прогонялись).
-2) Независимый агент читает `review/review-brief.md` + `review/handoff.md`.
-3) Составляет `review/test-plan.md`, выполняет проверки, заполняет отчёты.
+1) Dev‑агент заполняет `framework/review/handoff.md` (и `framework/review/test-results.md`, если тесты прогонялись).
+2) Независимый агент читает `framework/review/review-brief.md` + `framework/review/handoff.md`.
+3) Составляет `framework/review/test-plan.md`, выполняет проверки, заполняет отчёты.
 4) Возвращает результаты в основную ветку.

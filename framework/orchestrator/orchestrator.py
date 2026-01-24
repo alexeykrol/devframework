@@ -362,7 +362,7 @@ def main():
         if lock_created and lock_path.exists():
             lock_path.unlink()
 
-    summary_path = project_root / "docs" / "orchestrator-run-summary.md"
+    summary_path = project_root / "framework" / "docs" / "orchestrator-run-summary.md"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     run_finished_at = time.time()
     with summary_path.open("w", encoding="utf-8") as f:

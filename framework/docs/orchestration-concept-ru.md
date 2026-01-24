@@ -24,7 +24,7 @@ Python удобнее для:
 ---
 
 ## 3) Как выглядит процесс
-1) Подготовить **мини‑задачи** в `docs/tasks/*.md`.
+1) Подготовить **мини‑задачи** в `framework/tasks/*.md`.
 2) Настроить список задач в `framework/orchestrator/orchestrator.yaml`.
 3) Запустить:
    ```bash
@@ -33,8 +33,8 @@ Python удобнее для:
 4) Оркестратор:
    - создаст worktree для каждой задачи,
    - запустит команды,
-   - запишет лог в `logs/*.log`,
-   - создаст отчет `docs/orchestrator-run-summary.md`.
+   - запишет лог в `framework/logs/*.log`,
+   - создаст отчет `framework/docs/orchestrator-run-summary.md`.
 
 ---
 
@@ -47,15 +47,15 @@ Python удобнее для:
 ## 5) Как агент запускается
 В YAML‑конфиге для каждой задачи есть `command`, например:
 ```
-command: "codex run --prompt docs/tasks/db-schema.md"
+command: "codex run --prompt framework/tasks/db-schema.md"
 ```
 Команда может быть любой, главное — чтобы завершалась кодом 0 при успехе.
 
 ---
 
 ## 6) Выходные артефакты
-- `logs/<task>.log` — лог каждой задачи
-- `docs/orchestrator-run-summary.md` — итоговый статус
+- `framework/logs/<task>.log` — лог каждой задачи
+- `framework/docs/orchestrator-run-summary.md` — итоговый статус
 
 ---
 
@@ -70,9 +70,9 @@ command: "codex run --prompt docs/tasks/db-schema.md"
 проводит ревью и тесты без контекста.
 
 **Артефакты:**
-- `review/handoff.md` — контекст и команды запуска от dev‑агента.
-- `review/test-plan.md` — независимый план тестирования.
-- `review/code-review-report.md`, `review/bug-report.md`, `review/qa-coverage.md`.
+- `framework/review/handoff.md` — контекст и команды запуска от dev‑агента.
+- `framework/review/test-plan.md` — независимый план тестирования.
+- `framework/review/code-review-report.md`, `framework/review/bug-report.md`, `framework/review/qa-coverage.md`.
 
 ---
 
@@ -82,14 +82,14 @@ command: "codex run --prompt docs/tasks/db-schema.md"
 **Правило:** третий поток запускается только после завершения main‑прогона.
 
 **Механика:**
-- Во время main‑прогона создаётся `logs/framework-run.lock`.
+- Во время main‑прогона создаётся `framework/logs/framework-run.lock`.
 - После завершения lock удаляется и можно запускать post‑run задачи.
-- Логи хранятся в `logs/framework-run.jsonl`.
+- Логи хранятся в `framework/logs/framework-run.jsonl`.
 
 **Артефакты:**
-- `framework-review/framework-log-analysis.md`
-- `framework-review/framework-bug-report.md`
-- `framework-review/framework-fix-plan.md`
+- `framework/framework-review/framework-log-analysis.md`
+- `framework/framework-review/framework-bug-report.md`
+- `framework/framework-review/framework-fix-plan.md`
 
 ---
 
@@ -97,11 +97,11 @@ command: "codex run --prompt docs/tasks/db-schema.md"
 Legacy‑миграция выполняется в отдельном контуре и не меняет код до approval.
 
 **Артефакты:**
-- `migration/legacy-snapshot.md`
-- `migration/legacy-tech-spec.md`
-- `migration/legacy-gap-report.md`
-- `migration/legacy-risk-assessment.md`
-- `migration/legacy-migration-plan.md`
-- `migration/legacy-migration-proposal.md`
-- `migration/approval.md`
-- `migration/rollback-plan.md`
+- `framework/migration/legacy-snapshot.md`
+- `framework/migration/legacy-tech-spec.md`
+- `framework/migration/legacy-gap-report.md`
+- `framework/migration/legacy-risk-assessment.md`
+- `framework/migration/legacy-migration-plan.md`
+- `framework/migration/legacy-migration-proposal.md`
+- `framework/migration/approval.md`
+- `framework/migration/rollback-plan.md`

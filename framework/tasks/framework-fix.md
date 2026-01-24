@@ -4,16 +4,16 @@
 Внести исправления в фреймворк по итогам framework‑review.
 
 ## Inputs
-- `framework-review/framework-bug-report.md`
-- `framework-review/framework-fix-plan.md`
+- `framework/framework-review/framework-bug-report.md`
+- `framework/framework-review/framework-fix-plan.md`
 
 ## Outputs
 - Изменения в коде фреймворка
-- Обновлённый `framework-review/framework-fix-plan.md`
+- Обновлённый `framework/framework-review/framework-fix-plan.md`
 
 ## Rules
 - Запускать только между прогонами.
-- Не стартовать, если активен `logs/framework-run.lock`.
+- Не стартовать, если активен `framework/logs/framework-run.lock`.
 
 ## Done When
 - Исправления внесены и описаны.

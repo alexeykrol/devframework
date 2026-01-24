@@ -4,8 +4,8 @@
 Применить изменения в migration‑ветке после одобрения.
 
 ## Inputs
-- `migration/approval.md`
-- `migration/legacy-migration-plan.md`
+- `framework/migration/approval.md`
+- `framework/migration/legacy-migration-plan.md`
 
 ## Outputs
 - Изменения в ветке `legacy-migration`
