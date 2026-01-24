@@ -8,6 +8,7 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 - docs/tasks/ - task mini-spec templates
 - review/ - independent review artifacts and runbook
 - framework-review/ - framework QA artifacts (third flow)
+- migration/ - legacy migration analysis and safety artifacts
 
 ## Quick start
 1) Fill in the task files in `docs/tasks/*.md`.
@@ -21,6 +22,7 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 - `docs/orchestrator-run-summary.md`
 - `review/*.md`
 - `framework-review/*.md`
+- `migration/*.md`
 
 ## Notes
 - Relative paths in YAML are resolved from the config file; task paths are resolved from `project_root`.
@@ -40,6 +42,14 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 4) If fixes are needed, run:
    `python3 framework/orchestrator/orchestrator.py --phase post --include-manual`
 5) Use `framework-review/bundle.md` as the single entry point for the third agent.
+
+## Legacy migration flow (read-only + approval gate)
+1) Run legacy analysis phase:
+   `python3 framework/orchestrator/orchestrator.py --phase legacy`
+2) Review artifacts in `migration/`.
+3) Human approval in `migration/approval.md`.
+4) Apply changes in isolated branch (manual):
+   `python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual`
 
 ## AGENTS.md behavior (Codex)
 1) When AGENTS.md is read

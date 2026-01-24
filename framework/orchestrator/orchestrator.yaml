@@ -82,3 +82,52 @@ tasks:
     depends_on:
       - framework-review
     log: logs/framework-fix.log
+
+  - name: legacy-audit
+    phase: legacy
+    branch: task/legacy-audit
+    worktree: ../incuragent-legacy-audit
+    prompt: docs/tasks/legacy-audit.md
+    runner: codex
+    log: logs/legacy-audit.log
+
+  - name: legacy-tech-spec
+    phase: legacy
+    branch: task/legacy-tech-spec
+    worktree: ../incuragent-legacy-tech-spec
+    prompt: docs/tasks/legacy-tech-spec.md
+    runner: codex
+    depends_on:
+      - legacy-audit
+    log: logs/legacy-tech-spec.log
+
+  - name: legacy-gap
+    phase: legacy
+    branch: task/legacy-gap
+    worktree: ../incuragent-legacy-gap
+    prompt: docs/tasks/legacy-gap.md
+    runner: codex
+    depends_on:
+      - legacy-tech-spec
+    log: logs/legacy-gap.log
+
+  - name: legacy-migration-plan
+    phase: legacy
+    branch: task/legacy-migration-plan
+    worktree: ../incuragent-legacy-migration-plan
+    prompt: docs/tasks/legacy-migration-plan.md
+    runner: codex
+    depends_on:
+      - legacy-gap
+    log: logs/legacy-migration-plan.log
+
+  - name: legacy-apply
+    phase: legacy
+    manual: true
+    branch: legacy-migration
+    worktree: ../incuragent-legacy-migration
+    prompt: docs/tasks/legacy-apply.md
+    runner: codex
+    depends_on:
+      - legacy-migration-plan
+    log: logs/legacy-apply.log

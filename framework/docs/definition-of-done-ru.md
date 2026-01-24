@@ -13,6 +13,7 @@
 - Независимый review выполнен (отчёт в `review/`).
 - Handoff для ревью подготовлен (`review/handoff.md`).
 - Framework review выполнен (см. `framework-review/`).
+- Для legacy‑проектов: миграция прошла через approval и отдельную ветку.
 - Миграции БД применены.
 - Rollback план подготовлен.
 - Обновлены release notes.

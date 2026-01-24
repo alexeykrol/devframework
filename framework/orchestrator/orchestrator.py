@@ -110,7 +110,7 @@ def normalize_tasks(tasks):
         if not isinstance(task["depends_on"], list):
             raise RuntimeError(f"Task '{name}': 'depends_on' must be a list")
         phase = task.get("phase", "main")
-        if phase not in ("main", "post"):
+        if phase not in ("main", "post", "legacy"):
             raise RuntimeError(f"Task '{name}': invalid phase '{phase}'")
         task["phase"] = phase
         manual = task.get("manual", False)
@@ -157,7 +157,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="framework/orchestrator/orchestrator.yaml")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--phase", choices=["main", "post"], default="main")
+    parser.add_argument("--phase", choices=["main", "post", "legacy"], default="main")
     parser.add_argument("--include-manual", action="store_true")
     args = parser.parse_args()
 
@@ -192,7 +192,7 @@ def main():
     lock_path = logs_dir / "framework-run.lock"
     lock_created = False
 
-    if args.phase == "post" and lock_path.exists():
+    if args.phase in ("post", "legacy") and lock_path.exists():
         raise RuntimeError(
             f"Active run lock detected at {lock_path}. Finish the main run first."
         )

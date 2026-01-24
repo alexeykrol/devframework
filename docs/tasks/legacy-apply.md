@@ -1,0 +1,20 @@
+# Task: Legacy Migration Apply (manual)
+
+## Goal
+Применить изменения в migration‑ветке после одобрения.
+
+## Inputs
+- `migration/approval.md`
+- `migration/legacy-migration-plan.md`
+
+## Outputs
+- Изменения в ветке `legacy-migration`
+- Обновлённый план миграции со статусом
+
+## Rules
+- Запускать только после одобрения.
+- Работать только в migration‑ветке.
+- Main не менять напрямую.
+
+## Done When
+- Изменения внесены в ветку и протестированы.

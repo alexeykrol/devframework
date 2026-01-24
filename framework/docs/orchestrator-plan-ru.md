@@ -55,6 +55,7 @@
 9) **Test Plan (independent)** (по ТЗ и DoD)
 10) **Review Handoff Prep** (пакет для независимого ревью)
 11) **Framework Review (post-run)** (анализ работы фреймворка)
+12) **Legacy Migration (read‑only)** (аудит, reverse‑spec, gap, plan)
 
 ### Зависимости
 - UI зависит от выбора Tailwind UI компонентов (по протоколу).
@@ -137,6 +138,22 @@
 - Вход: `framework-review/framework-bug-report.md`, `framework-review/framework-fix-plan.md`.
 - Выход: исправления в коде фреймворка.
 - Запускать только между прогонами.
+
+### 3.14 Legacy Migration (read-only)
+**Цель:** проанализировать legacy‑проект и подготовить безопасный план миграции.
+- Вход: репозиторий (read‑only), `framework/docs/orchestrator-plan-ru.md`.
+- Выход: `migration/legacy-snapshot.md`, `migration/legacy-tech-spec.md`,
+  `migration/legacy-gap-report.md`, `migration/legacy-risk-assessment.md`,
+  `migration/legacy-migration-plan.md`, `migration/legacy-migration-proposal.md`,
+  `migration/rollback-plan.md`.
+- Запуск: `python3 framework/orchestrator/orchestrator.py --phase legacy`.
+- Изменения применяются только после approval и в отдельной ветке.
+
+### 3.15 Legacy Apply (manual)
+**Цель:** применить изменения в отдельной ветке после одобрения.
+- Вход: `migration/approval.md`, `migration/legacy-migration-plan.md`.
+- Выход: изменения в ветке `legacy-migration`.
+- Запуск: `python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual`.
 
 ---
 

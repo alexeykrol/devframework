@@ -90,3 +90,18 @@ command: "codex run --prompt docs/tasks/db-schema.md"
 - `framework-review/framework-log-analysis.md`
 - `framework-review/framework-bug-report.md`
 - `framework-review/framework-fix-plan.md`
+
+---
+
+## 10) Legacy Migration (read-only контур)
+Legacy‑миграция выполняется в отдельном контуре и не меняет код до approval.
+
+**Артефакты:**
+- `migration/legacy-snapshot.md`
+- `migration/legacy-tech-spec.md`
+- `migration/legacy-gap-report.md`
+- `migration/legacy-risk-assessment.md`
+- `migration/legacy-migration-plan.md`
+- `migration/legacy-migration-proposal.md`
+- `migration/approval.md`
+- `migration/rollback-plan.md`
