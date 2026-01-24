@@ -1,24 +1,28 @@
-# Review Runbook
+# Runbook: независимое ревью через worktree
 
-Цель: независимый агент должен уметь проверить проект без доступа к исходному контексту.
+## 1) Создать worktree
+```bash
+git worktree add ../project-review <COMMIT_HASH>
+```
 
-## Входные данные
-- Target commit/branch/tag
-- ТЗ/спецификация (например, `docs/tech-spec-ru.md`)
-- DoD (`framework/docs/definition-of-done-ru.md`)
-- Итог оркестратора (`docs/orchestrator-run-summary.md`), если есть
-- `review/review-brief.md`
+## 2) Заполнить review‑brief
+- Открыть `review/review-brief.md`
+- Указать commit/branch, контекст, команды тестов
 
-## Порядок работы
-1) Прочитать `review-brief.md`, ТЗ и DoD.
-2) Проверить, что ревьюется именно указанный commit/branch.
-3) Обновить/уточнить `test-plan.md` по ТЗ и DoD.
-4) Выполнить авто‑тесты и линтеры (если они есть), сохранить результаты.
-5) Провести код‑ревью по критическим зонам, заполнить `code-review-report.md`.
-6) Зафиксировать баги в `bug-report.md` (с шагами воспроизведения).
-7) Обновить `qa-coverage.md` (что было выполнено/не выполнено и почему).
+## 3) Запустить агента
+```bash
+cd ../project-review
+# запуск вашего AI‑агента с prompt из review/review-brief.md
+```
 
-## Рекомендации
-- Если тестов нет — описать ручные проверки и явно указать пробелы.
-- Не менять код. Только отчеты в папке `review/`.
-- Каждый найденный риск должен ссылаться на файл/функцию и иметь уровень критичности.
+## 4) Выполнить тесты (если есть)
+- Использовать команды из `review/review-brief.md`
+- Сохранить результаты/логи
+
+## 5) Итог
+- Заполнить:
+  - `review/test-plan.md`
+  - `review/code-review-report.md`
+  - `review/bug-report.md`
+  - `review/qa-coverage.md`
+- Передать результаты в основную ветку

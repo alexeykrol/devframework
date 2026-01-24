@@ -1,20 +1,31 @@
-# Test Plan
+# План тестирования
 
-## Scope
+## 1) Цели
+- Проверить ключевые пользовательские сценарии
+- Обнаружить ошибки в логике
+- Валидировать корректность UI/UX
+
+## 2) Область охвата
 - 
 
-## Test matrix
-- Feature/Area:
-  - Scenario:
-  - Type (unit/integration/e2e/manual):
-  - Preconditions:
-  - Steps:
-  - Expected результат:
+## 3) Типы тестов
+- Unit
+- Integration
+- E2E
+- Manual
 
-## Non‑functional
-- Performance:
-- Security/Privacy:
-- Accessibility:
+## 4) Критические сценарии
+1) 
+2) 
+3) 
 
-## Data & fixtures
+## 5) Негативные кейсы
+- 
+
+## 6) Критерии приемки
+- Все critical flows проходят
+- Нет P0/P1 багов
+- Тесты зелёные
+
+## 7) Данные и фикстуры
 - 

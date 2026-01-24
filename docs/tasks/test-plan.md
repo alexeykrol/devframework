@@ -10,7 +10,7 @@
 - `review/review-brief.md`
 
 ## Outputs
-- `review/test-plan.md`
+- `review/test-plan.md` (по шаблону из `review/`)
 
 ## Rules
 - Не менять код.
