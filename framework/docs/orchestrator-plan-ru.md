@@ -114,7 +114,7 @@
 ### 3.10 Review Handoff Prep
 **Цель:** подготовить пакет для независимого ревью.
 - Вход: commit/branch, результаты тестов (если есть).
-- Выход: `review/handoff.md`, `review/test-results.md` (опционально).
+- Выход: `review/handoff.md`, `review/bundle.md`, `review/test-results.md` (опционально).
 - Без изменения кода.
 
 ### 3.11 Independent Review

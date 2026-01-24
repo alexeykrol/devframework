@@ -5,7 +5,8 @@
 git worktree add ../project-review <COMMIT_HASH>
 ```
 
-## 2) Прочитать brief и handoff
+## 2) Прочитать bundle/brief/handoff
+- `review/bundle.md`
 - `review/review-brief.md`
 - `review/handoff.md`
 

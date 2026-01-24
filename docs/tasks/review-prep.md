@@ -10,6 +10,7 @@
 
 ## Outputs
 - `review/handoff.md`
+- `review/bundle.md`
 - `review/test-results.md` (если прогонялись тесты)
 
 ## Rules
