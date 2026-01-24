@@ -124,10 +124,10 @@ tasks:
   - name: legacy-apply
     phase: legacy
     manual: true
-    branch: legacy-migration
-    worktree: ../incuragent-legacy-migration
+    branch: legacy-migration-{run_id}
+    worktree: ../incuragent-legacy-migration-{run_id}
     prompt: docs/tasks/legacy-apply.md
     runner: codex
     depends_on:
       - legacy-migration-plan
-    log: logs/legacy-apply.log
+    log: logs/legacy-apply-{run_id}.log

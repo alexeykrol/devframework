@@ -50,6 +50,7 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 3) Human approval in `migration/approval.md`.
 4) Apply changes in isolated branch (manual):
    `python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual`
+   (branch name: `legacy-migration-<run_id>`)
 
 ## AGENTS.md behavior (Codex)
 1) When AGENTS.md is read

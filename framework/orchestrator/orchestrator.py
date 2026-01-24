@@ -68,6 +68,19 @@ def iso_ts(epoch: float) -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(epoch))
 
 
+def format_template(value, **kwargs):
+    if value is None:
+        return None
+    if isinstance(value, Path):
+        value = str(value)
+    if not isinstance(value, str):
+        return value
+    try:
+        return value.format(**kwargs)
+    except KeyError as exc:
+        raise RuntimeError(f"Unknown template key {exc} in value: {value}") from exc
+
+
 def ensure_worktree(project_root: Path, worktree_path: Path, branch: str):
     if worktree_path.exists():
         if not is_git_worktree(worktree_path):
@@ -245,14 +258,32 @@ def main():
                 if not can_start(task):
                     continue
 
-                worktree = resolve_path(task["worktree"], project_root)
-                branch = task.get("branch", f"task/{task['name']}")
+                worktree_value = format_template(
+                    task["worktree"],
+                    run_id=run_id,
+                    phase=args.phase,
+                    task=task["name"],
+                )
+                worktree = resolve_path(worktree_value, project_root)
+                branch_value = format_template(
+                    task.get("branch", f"task/{task['name']}"),
+                    run_id=run_id,
+                    phase=args.phase,
+                    task=task["name"],
+                )
+                branch = branch_value
                 prompt_path = resolve_path(task["prompt"], project_root)
                 if not prompt_path.exists():
                     raise RuntimeError(f"Prompt file not found: {prompt_path}")
                 command = build_command(runners, task, prompt_path)
                 log_value = task.get("log")
                 if log_value:
+                    log_value = format_template(
+                        log_value,
+                        run_id=run_id,
+                        phase=args.phase,
+                        task=task["name"],
+                    )
                     log_path = resolve_path(log_value, project_root)
                 else:
                     log_path = logs_dir / f"{task['name']}.log"
@@ -265,6 +296,7 @@ def main():
                         "task": task["name"],
                         "timestamp": iso_ts(time.time()),
                         "command": command,
+                        "branch": branch,
                         "worktree": str(worktree),
                         "log": str(log_path),
                     },

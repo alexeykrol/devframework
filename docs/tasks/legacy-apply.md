@@ -13,7 +13,7 @@
 
 ## Rules
 - Запускать только после одобрения.
-- Работать только в migration‑ветке.
+- Работать только в migration‑ветке (`legacy-migration-<run_id>`).
 - Main не менять напрямую.
 
 ## Done When

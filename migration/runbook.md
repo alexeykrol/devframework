@@ -25,10 +25,8 @@ python3 framework/orchestrator/orchestrator.py --phase legacy
 - Без approval изменения запрещены.
 
 ## 4) Создать ветку миграции (изолированно)
-```
-# пример
-git worktree add -b legacy-migration ../project-legacy-migration <MAIN_COMMIT>
-```
+Ветка создаётся автоматически оркестратором при запуске `legacy-apply` и включает `run_id`:
+`legacy-migration-<run_id>`.
 
 ## 5) Применить изменения только в migration‑ветке
 - Все правки в ветке `legacy-migration`.
