@@ -90,6 +90,16 @@ Auto-detection:
 2) `./install-framework.sh --run`
 3) PR/issue will be created automatically in `devframework`.
 
+## Minimal quick start (one‑liners)
+New project:
+```
+FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh --run
+```
+Legacy project:
+```
+FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh --run --phase legacy
+```
+
 ## Build release zip (maintainers)
 ```
 python3 scripts/package-framework.py
