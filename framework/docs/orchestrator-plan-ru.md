@@ -53,6 +53,7 @@
 7) **Unit + E2E tests (mock data)**
 8) **DevOps (Vercel env, deploy pipelines)**
 9) **Test Plan (independent)** (по ТЗ и DoD)
+10) **Review Handoff Prep** (пакет для независимого ревью)
 
 ### Зависимости
 - UI зависит от выбора Tailwind UI компонентов (по протоколу).
@@ -110,7 +111,13 @@
 - Выход: `review/test-plan.md`.
 - Без изменения кода.
 
-### 3.10 Independent Review
+### 3.10 Review Handoff Prep
+**Цель:** подготовить пакет для независимого ревью.
+- Вход: commit/branch, результаты тестов (если есть).
+- Выход: `review/handoff.md`, `review/test-results.md` (опционально).
+- Без изменения кода.
+
+### 3.11 Independent Review
 **Цель:** независимое код‑ревью и QA.
 - Вход: `review/test-plan.md`, `review/review-brief.md`.
 - Выход: `review/code-review-report.md`, `review/bug-report.md`, `review/qa-coverage.md`.

@@ -22,3 +22,8 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 ## Notes
 - Relative paths in YAML are resolved from the config file; task paths are resolved from `project_root`.
 - The repo must be a git repository (for `git worktree`).
+
+## Parallel review flow (two-agent)
+1) Dev agent completes tasks and prepares `review/handoff.md` (and test results if any).
+2) In parallel, a second agent uses `review/runbook.md` and `review/review-brief.md` to run review/testing.
+3) Review outputs go to `review/` and are fed back to the dev agent.

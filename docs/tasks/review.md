@@ -6,6 +6,7 @@
 ## Inputs
 - `review/test-plan.md`
 - `review/review-brief.md`
+- `review/handoff.md`
 - `framework/docs/definition-of-done-ru.md`
 - `docs/orchestrator-run-summary.md` (если есть)
 
@@ -13,6 +14,7 @@
 - `review/code-review-report.md`
 - `review/bug-report.md`
 - `review/qa-coverage.md`
+- `review/test-results.md` (если прогонялись тесты)
 
 ## Rules
 - Не менять код, только отчёты.

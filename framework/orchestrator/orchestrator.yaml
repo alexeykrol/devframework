@@ -43,14 +43,23 @@ tasks:
     runner: codex
     log: logs/test-plan.log
 
+  - name: review-prep
+    branch: task/review-prep
+    worktree: ../incuragent-review-prep
+    prompt: docs/tasks/review-prep.md
+    runner: codex
+    depends_on:
+      - db-schema
+      - business-logic
+      - ui
+    log: logs/review-prep.log
+
   - name: review
     branch: task/review
     worktree: ../incuragent-review
     prompt: docs/tasks/review.md
     runner: codex
     depends_on:
-      - db-schema
-      - business-logic
-      - ui
       - test-plan
+      - review-prep
     log: logs/review.log

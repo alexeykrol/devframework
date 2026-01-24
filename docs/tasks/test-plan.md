@@ -8,6 +8,7 @@
 - `framework/docs/orchestrator-plan-ru.md`
 - `docs/tech-spec-ru.md` (если есть)
 - `review/review-brief.md`
+- `review/handoff.md` (если есть)
 
 ## Outputs
 - `review/test-plan.md` (по шаблону из `review/`)
