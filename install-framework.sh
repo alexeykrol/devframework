@@ -141,15 +141,28 @@ if [[ -z "$ZIP_PATH" ]]; then
 fi
 
 if [[ -d "$FRAMEWORK_DIR" && "$UPDATE_FLAG" -ne 1 ]]; then
-  echo "Framework already installed at $FRAMEWORK_DIR" >&2
-  if [[ -n "$LOCAL_VERSION" ]]; then
-    echo "Local version: $LOCAL_VERSION" >&2
+  if [[ -n "$ZIP_PATH" ]]; then
+    echo "Framework already installed at $FRAMEWORK_DIR" >&2
+    echo "Local zip provided. Re-run with --update to replace (backup is created)." >&2
+    exit 1
   fi
+
   if [[ -n "$REMOTE_VERSION" ]]; then
-    echo "Remote version: $REMOTE_VERSION" >&2
+    if [[ -n "$LOCAL_VERSION" && "$LOCAL_VERSION" == "$REMOTE_VERSION" ]]; then
+      echo "Framework is already up to date ($LOCAL_VERSION)."
+      if [[ "$RUN_FLAG" -ne 1 ]]; then
+        exit 0
+      fi
+      SKIP_INSTALL=1
+    else
+      echo "Updating framework from $LOCAL_VERSION to $REMOTE_VERSION"
+      UPDATE_FLAG=1
+    fi
+  else
+    echo "Framework already installed at $FRAMEWORK_DIR" >&2
+    echo "Remote version unknown. Re-run with --update or --zip to replace." >&2
+    exit 1
   fi
-  echo "Re-run with --update to replace (backup is created)." >&2
-  exit 1
 fi
 
 if [[ -d "$FRAMEWORK_DIR" && "$UPDATE_FLAG" -eq 1 ]]; then

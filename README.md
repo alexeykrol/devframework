@@ -26,7 +26,7 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
    `./install-framework.sh --run`
 
 ### Host prerequisites (before running the launcher)
-- Git repo initialized in the host project:
+- Git repo initialized in the host project (remote is optional):
   ```
   git init
   git add .
@@ -36,13 +36,14 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
   ```
   python3 --version
   ```
-- Network access to GitHub for downloading `framework.zip`.
+- Network access to GitHub for downloading `framework.zip` (not required if you pass `--zip`).
 - (Optional) `curl` installed; if missing, Python will download the zip instead.
-- If `./framework` already exists, use `--update` to avoid an early stop.
+- If `./framework` already exists, the launcher auto-updates when remote version differs.
+  Use `--update` to force a refresh or when using a local zip.
 
 Options:
 - Use a local zip: `./install-framework.sh --zip ./framework.zip`
-- Update an existing install (creates a backup first): `./install-framework.sh --update`
+- Force update (creates a backup first): `./install-framework.sh --update`
 - Force phase: `./install-framework.sh --phase legacy` or `--phase main`
 - Override repo/ref:
   `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-framework.sh --run`
