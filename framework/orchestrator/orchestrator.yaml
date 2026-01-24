@@ -4,6 +4,21 @@
 project_root: ../..
 logs_dir: framework/logs
 
+# Auto publish report bundle after a run (optional).
+# Can be overridden by env vars: FRAMEWORK_REPORTING_*
+reporting:
+  enabled: false
+  repo: alexeykrol/devframework
+  mode: pr
+  host_id: unknown-host
+  phases:
+    - legacy
+    - post
+    - main
+  include_migration: true
+  include_review: false
+  include_task_logs: false
+
 # Профили запусков (можно переключать в tasks)
 runners:
   codex:

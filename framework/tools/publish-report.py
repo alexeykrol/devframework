@@ -15,7 +15,13 @@ def run(cmd, cwd=None):
     return subprocess.run(cmd, cwd=cwd, check=False, text=True, capture_output=True)
 
 
-def ensure_zip(path: Path, run_id: str, include_migration: bool, include_review: bool):
+def ensure_zip(
+    path: Path,
+    run_id: str,
+    include_migration: bool,
+    include_review: bool,
+    include_task_logs: bool,
+):
     if path and path.exists():
         return path
     args = ["python3", str(EXPORT_SCRIPT), "--run-id", run_id]
@@ -23,6 +29,8 @@ def ensure_zip(path: Path, run_id: str, include_migration: bool, include_review:
         args.append("--include-migration")
     if include_review:
         args.append("--include-review")
+    if include_task_logs:
+        args.append("--include-task-logs")
     res = run(args)
     if res.returncode != 0:
         raise RuntimeError(res.stderr or res.stdout)
@@ -63,6 +71,7 @@ def main() -> None:
     parser.add_argument("--base", default="main")
     parser.add_argument("--include-migration", action="store_true")
     parser.add_argument("--include-review", action="store_true")
+    parser.add_argument("--include-task-logs", action="store_true")
     parser.add_argument("--token", default=os.getenv("GITHUB_TOKEN"))
     args = parser.parse_args()
 
@@ -71,7 +80,13 @@ def main() -> None:
 
     run_id = args.run_id
     zip_path = Path(args.zip_path) if args.zip_path else None
-    zip_path = ensure_zip(zip_path, run_id, args.include_migration, args.include_review)
+    zip_path = ensure_zip(
+        zip_path,
+        run_id,
+        args.include_migration,
+        args.include_review,
+        args.include_task_logs,
+    )
 
     branch = f"reports/{args.host_id}/{run_id}"
     report_path = Path("reports") / args.host_id / f"report-{run_id}.zip"

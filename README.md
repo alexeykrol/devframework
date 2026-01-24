@@ -9,8 +9,10 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 - framework/review/ - independent review artifacts and runbook
 - framework/framework-review/ - framework QA artifacts (third flow)
 - framework/migration/ - legacy migration analysis and safety artifacts
+- framework/VERSION - framework release identifier
 - framework.zip - portable bundle for host projects
 - install-framework.sh - installer for framework.zip
+- scripts/package-framework.py - build helper for framework.zip
 
 ## Quick start
 1) Fill in the task files in `framework/tasks/*.md`.
@@ -18,11 +20,28 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 3) Run:
    `python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.yaml`
 
-## Zip install (host project)
-1) Copy `framework.zip` and `install-framework.sh` into the host project root.
-2) Run:
-   `./install-framework.sh`
-3) The framework will be installed into `./framework`.
+## Install in a host project (launcher)
+1) Copy `install-framework.sh` into the host project root.
+2) Run (downloads `framework.zip` from GitHub and installs into `./framework`):
+   `./install-framework.sh --run`
+
+Options:
+- Use a local zip: `./install-framework.sh --zip ./framework.zip`
+- Update an existing install (creates a backup first): `./install-framework.sh --update`
+- Force phase: `./install-framework.sh --phase legacy` or `--phase main`
+- Override repo/ref:
+  `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-framework.sh --run`
+
+Auto-detection:
+- If the host root contains files other than `.git`, `framework/`, `framework.zip`, or
+  `install-framework.sh`, the launcher assumes a legacy project and runs `--phase legacy`.
+
+## Build release zip (maintainers)
+```
+python3 scripts/package-framework.py
+```
+Produces `framework.zip` and keeps `framework/VERSION` as the version string.
+Use `--version <value>` to update `framework/VERSION`.
 
 ## Report bundle + auto publish (host project)
 1) Export report bundle (redacts logs by default):
@@ -30,6 +49,18 @@ Local scaffold for orchestrating parallel tasks with git worktrees.
 2) Publish to central repo (creates PR by default):
    `export GITHUB_TOKEN=...`
    `python3 framework/tools/publish-report.py --repo alexeykrol/devframework --run-id <RUN_ID> --host-id <HOST_ID>`
+
+Auto-publish from orchestrator (no manual command):
+- Set `reporting` in `framework/orchestrator/orchestrator.yaml` or via env vars:
+  - `FRAMEWORK_REPORTING_ENABLED=1`
+  - `FRAMEWORK_REPORTING_REPO=alexeykrol/devframework`
+  - `FRAMEWORK_REPORTING_MODE=pr|issue|both`
+  - `FRAMEWORK_REPORTING_HOST_ID=<host>`
+  - `FRAMEWORK_REPORTING_PHASES=legacy,main,post`
+  - `FRAMEWORK_REPORTING_INCLUDE_MIGRATION=1` (optional)
+  - `FRAMEWORK_REPORTING_INCLUDE_REVIEW=1` (optional)
+  - `FRAMEWORK_REPORTING_INCLUDE_TASK_LOGS=1` (optional, redacted)
+- Requires `GITHUB_TOKEN`.
 
 Notes:
 - The publish script pushes a report zip into `reports/<host>/<run_id>.zip` and opens a PR/Issue.

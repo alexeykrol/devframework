@@ -9,6 +9,7 @@ from pathlib import Path
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+VERSION_PATH = ROOT / "VERSION"
 SUMMARY_PATH = ROOT / "docs" / "orchestrator-run-summary.md"
 LOGS_DIR = ROOT / "logs"
 REVIEW_DIR = ROOT / "review"
@@ -104,6 +105,10 @@ def main() -> None:
         if SUMMARY_PATH.exists():
             copy_file(SUMMARY_PATH, tmp_root / "docs/orchestrator-run-summary.md", redact=False)
             collected.append(str(tmp_root / "docs/orchestrator-run-summary.md"))
+
+        if VERSION_PATH.exists():
+            copy_file(VERSION_PATH, tmp_root / "VERSION", redact=False)
+            collected.append(str(tmp_root / "VERSION"))
 
         jsonl = LOGS_DIR / "framework-run.jsonl"
         if jsonl.exists():

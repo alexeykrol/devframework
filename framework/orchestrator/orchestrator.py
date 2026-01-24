@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -56,6 +57,15 @@ def get_git_commit(project_root: Path) -> str:
     if res.returncode == 0:
         return res.stdout.strip()
     return "unknown"
+
+
+def get_framework_version(project_root: Path) -> str:
+    version_file = project_root / "framework" / "VERSION"
+    if version_file.exists():
+        content = version_file.read_text(encoding="utf-8", errors="ignore").strip()
+        if content:
+            return content
+    return get_git_commit(project_root)
 
 
 def write_event(path: Path, payload: dict):
@@ -200,7 +210,7 @@ def main():
 
     run_id = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8]
     run_started_at = time.time()
-    framework_version = get_git_commit(project_root)
+    framework_version = get_framework_version(project_root)
     events_path = logs_dir / "framework-run.jsonl"
     lock_path = logs_dir / "framework-run.lock"
     lock_created = False
@@ -235,6 +245,7 @@ def main():
     def can_start(task):
         return all(dep in completed and completed[dep] == 0 for dep in task["depends_on"])
 
+    framework_root = Path(__file__).resolve().parents[1]
     run_error = None
     try:
         while len(completed) + len(blocked) < len(tasks):
@@ -399,10 +410,105 @@ def main():
     )
 
     print(f"Summary saved to {summary_path}")
+    publish_error = None
+    try:
+        if not args.dry_run:
+            publish_error = maybe_publish_report(cfg, args.phase, run_id, framework_root)
+    except Exception as exc:
+        publish_error = str(exc)
+        print(f"[REPORT] {publish_error}")
+
+    if publish_error:
+        write_event(
+            events_path,
+            {
+                "event": "report_publish_error",
+                "run_id": run_id,
+                "phase": args.phase,
+                "timestamp": iso_ts(time.time()),
+                "error": publish_error,
+            },
+        )
     exit_code = 0
     if any(code != 0 for code in completed.values()) or blocked or run_error:
         exit_code = 1
     sys.exit(exit_code)
+
+
+def bool_from_env(value, default=False):
+    if value is None:
+        return default
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+def parse_phases(value, default):
+    if not value:
+        return default
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def maybe_publish_report(cfg, phase, run_id, framework_root: Path):
+    reporting = cfg.get("reporting") or {}
+    enabled = bool_from_env(os.getenv("FRAMEWORK_REPORTING_ENABLED"), reporting.get("enabled", False))
+    if not enabled:
+        return None
+
+    phases = parse_phases(
+        os.getenv("FRAMEWORK_REPORTING_PHASES"),
+        reporting.get("phases", ["legacy", "post", "main"]),
+    )
+    if phase not in phases:
+        return None
+
+    repo = os.getenv("FRAMEWORK_REPORTING_REPO", reporting.get("repo"))
+    if not repo:
+        return "FRAMEWORK_REPORTING_REPO is required"
+
+    mode = os.getenv("FRAMEWORK_REPORTING_MODE", reporting.get("mode", "pr"))
+    host_id = os.getenv("FRAMEWORK_REPORTING_HOST_ID", reporting.get("host_id", "unknown-host"))
+
+    include_migration = bool_from_env(
+        os.getenv("FRAMEWORK_REPORTING_INCLUDE_MIGRATION"),
+        reporting.get("include_migration", phase == "legacy"),
+    )
+    include_review = bool_from_env(
+        os.getenv("FRAMEWORK_REPORTING_INCLUDE_REVIEW"),
+        reporting.get("include_review", False),
+    )
+    include_task_logs = bool_from_env(
+        os.getenv("FRAMEWORK_REPORTING_INCLUDE_TASK_LOGS"),
+        reporting.get("include_task_logs", False),
+    )
+
+    publish_script = framework_root / "tools" / "publish-report.py"
+    if not publish_script.exists():
+        return f"Publish script not found: {publish_script}"
+
+    cmd = [
+        "python3",
+        str(publish_script),
+        "--repo",
+        repo,
+        "--run-id",
+        run_id,
+        "--host-id",
+        host_id,
+        "--mode",
+        mode,
+    ]
+    if include_migration:
+        cmd.append("--include-migration")
+    if include_review:
+        cmd.append("--include-review")
+    if include_task_logs:
+        cmd.append("--include-task-logs")
+
+    res = subprocess.run(cmd, check=False, text=True, capture_output=True)
+    if res.returncode != 0:
+        return res.stderr or res.stdout or "Report publish failed"
+    if res.stdout:
+        print(res.stdout.strip())
+    return None
 
 
 if __name__ == "__main__":

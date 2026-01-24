@@ -14,5 +14,5 @@ Publishes a report bundle to GitHub as a PR or issue.
 Example:
 ```
 export GITHUB_TOKEN=... 
-python3 framework/tools/publish-report.py --repo alexeykrol/devframework --run-id <RUN_ID> --mode pr --host-id my-host
+python3 framework/tools/publish-report.py --repo alexeykrol/devframework --run-id <RUN_ID> --mode pr --host-id my-host --include-task-logs
 ```
