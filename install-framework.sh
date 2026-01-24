@@ -258,3 +258,10 @@ PY
     --config "$FRAMEWORK_DIR/orchestrator/orchestrator.yaml" \
     --phase "$PHASE"
 fi
+
+if [[ -f "$FRAMEWORK_DIR/VERSION" ]]; then
+  VERSION="$(head -n1 "$FRAMEWORK_DIR/VERSION" | tr -d '\r')"
+  if [[ -n "$VERSION" ]]; then
+    echo "Framework version: $VERSION"
+  fi
+fi

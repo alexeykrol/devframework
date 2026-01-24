@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.24-blue)
+![Release](https://img.shields.io/github/v/release/alexeykrol/devframework?display_name=tag)
 
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
@@ -48,6 +48,7 @@ Options:
 - Force phase: `./install-framework.sh --phase legacy` or `--phase main`
 - Override repo/ref:
   `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-framework.sh --run`
+  (REF can be a tag, e.g. `v2026.01.24`)
 
 Auto-detection:
 - If the host root contains files other than `.git`, `framework/`, `framework.zip`, or
