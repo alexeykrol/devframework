@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 
 try:
@@ -41,6 +43,29 @@ def is_git_worktree(path: Path) -> bool:
         check=False,
     )
     return res.returncode == 0
+
+
+def get_git_commit(project_root: Path) -> str:
+    res = subprocess.run(
+        ["git", "-C", str(project_root), "rev-parse", "HEAD"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+        text=True,
+    )
+    if res.returncode == 0:
+        return res.stdout.strip()
+    return "unknown"
+
+
+def write_event(path: Path, payload: dict):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(payload, ensure_ascii=True) + "\n")
+
+
+def iso_ts(epoch: float) -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(epoch))
 
 
 def ensure_worktree(project_root: Path, worktree_path: Path, branch: str):
@@ -84,6 +109,14 @@ def normalize_tasks(tasks):
         task.setdefault("depends_on", [])
         if not isinstance(task["depends_on"], list):
             raise RuntimeError(f"Task '{name}': 'depends_on' must be a list")
+        phase = task.get("phase", "main")
+        if phase not in ("main", "post"):
+            raise RuntimeError(f"Task '{name}': invalid phase '{phase}'")
+        task["phase"] = phase
+        manual = task.get("manual", False)
+        if not isinstance(manual, bool):
+            raise RuntimeError(f"Task '{name}': 'manual' must be boolean")
+        task["manual"] = manual
         tasks_by_name[name] = task
         ordered.append(task)
     for name, task in tasks_by_name.items():
@@ -91,6 +124,25 @@ def normalize_tasks(tasks):
             if dep not in tasks_by_name:
                 raise RuntimeError(f"Task '{name}' depends on unknown task '{dep}'")
     return ordered, tasks_by_name
+
+
+def select_tasks(tasks, phase: str, include_manual: bool):
+    selected = []
+    selected_names = set()
+    for task in tasks:
+        if task.get("phase", "main") != phase:
+            continue
+        if task.get("manual", False) and not include_manual:
+            continue
+        selected.append(task)
+        selected_names.add(task["name"])
+    for task in selected:
+        missing = [dep for dep in task["depends_on"] if dep not in selected_names]
+        if missing:
+            raise RuntimeError(
+                f"Task '{task['name']}' depends on excluded tasks: {', '.join(missing)}"
+            )
+    return selected
 
 
 def build_command(runners, task, prompt_path: Path):
@@ -105,6 +157,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="framework/orchestrator/orchestrator.yaml")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--phase", choices=["main", "post"], default="main")
+    parser.add_argument("--include-manual", action="store_true")
     args = parser.parse_args()
 
     config_path = Path(args.config).resolve()
@@ -122,95 +176,172 @@ def main():
 
     runners = cfg.get("runners", {})
     tasks, _ = normalize_tasks(cfg.get("tasks", []))
+    tasks = select_tasks(tasks, args.phase, args.include_manual)
+
+    if not tasks:
+        raise RuntimeError(f"No tasks selected for phase '{args.phase}'")
 
     running = {}
     completed = {}
     blocked = {}
 
+    run_id = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8]
+    run_started_at = time.time()
+    framework_version = get_git_commit(project_root)
+    events_path = logs_dir / "framework-run.jsonl"
+    lock_path = logs_dir / "framework-run.lock"
+    lock_created = False
+
+    if args.phase == "post" and lock_path.exists():
+        raise RuntimeError(
+            f"Active run lock detected at {lock_path}. Finish the main run first."
+        )
+
+    if args.phase == "main" and not args.dry_run:
+        lock_payload = {
+            "run_id": run_id,
+            "phase": args.phase,
+            "started_at": iso_ts(run_started_at),
+        }
+        lock_path.write_text(json.dumps(lock_payload, ensure_ascii=True), encoding="utf-8")
+        lock_created = True
+
+    write_event(
+        events_path,
+        {
+            "event": "run_start",
+            "run_id": run_id,
+            "phase": args.phase,
+            "timestamp": iso_ts(run_started_at),
+            "project_root": str(project_root),
+            "config": str(config_path),
+            "framework_version": framework_version,
+        },
+    )
+
     def can_start(task):
         return all(dep in completed and completed[dep] == 0 for dep in task["depends_on"])
 
-    while len(completed) + len(blocked) < len(tasks):
-        progress = False
-        for task in tasks:
-            if task["name"] in running or task["name"] in completed:
-                continue
-            if task["name"] in blocked:
-                continue
+    run_error = None
+    try:
+        while len(completed) + len(blocked) < len(tasks):
+            progress = False
+            for task in tasks:
+                if task["name"] in running or task["name"] in completed:
+                    continue
+                if task["name"] in blocked:
+                    continue
 
-            failed_deps = [
-                dep
-                for dep in task["depends_on"]
-                if dep in blocked or (dep in completed and completed[dep] != 0)
-            ]
-            if failed_deps:
-                blocked[task["name"]] = failed_deps
-                print(f"[BLOCKED] {task['name']} <- {', '.join(failed_deps)}")
-                progress = True
-                continue
-            if not can_start(task):
-                continue
+                failed_deps = [
+                    dep
+                    for dep in task["depends_on"]
+                    if dep in blocked or (dep in completed and completed[dep] != 0)
+                ]
+                if failed_deps:
+                    blocked[task["name"]] = failed_deps
+                    print(f"[BLOCKED] {task['name']} <- {', '.join(failed_deps)}")
+                    progress = True
+                    continue
+                if not can_start(task):
+                    continue
 
-            worktree = resolve_path(task["worktree"], project_root)
-            branch = task.get("branch", f"task/{task['name']}")
-            prompt_path = resolve_path(task["prompt"], project_root)
-            if not prompt_path.exists():
-                raise RuntimeError(f"Prompt file not found: {prompt_path}")
-            command = build_command(runners, task, prompt_path)
-            log_value = task.get("log")
-            if log_value:
-                log_path = resolve_path(log_value, project_root)
-            else:
-                log_path = logs_dir / f"{task['name']}.log"
+                worktree = resolve_path(task["worktree"], project_root)
+                branch = task.get("branch", f"task/{task['name']}")
+                prompt_path = resolve_path(task["prompt"], project_root)
+                if not prompt_path.exists():
+                    raise RuntimeError(f"Prompt file not found: {prompt_path}")
+                command = build_command(runners, task, prompt_path)
+                log_value = task.get("log")
+                if log_value:
+                    log_path = resolve_path(log_value, project_root)
+                else:
+                    log_path = logs_dir / f"{task['name']}.log"
 
-            if not args.dry_run:
-                ensure_worktree(project_root, worktree, branch)
-                log_path.parent.mkdir(parents=True, exist_ok=True)
-                log_f = open(log_path, "w", encoding="utf-8")
-                print(f"[START] {task['name']} -> {log_path}")
-                proc = subprocess.Popen(
-                    command,
-                    cwd=worktree,
-                    shell=True,
-                    stdout=log_f,
-                    stderr=subprocess.STDOUT,
+                write_event(
+                    events_path,
+                    {
+                        "event": "task_start",
+                        "run_id": run_id,
+                        "task": task["name"],
+                        "timestamp": iso_ts(time.time()),
+                        "command": command,
+                        "worktree": str(worktree),
+                        "log": str(log_path),
+                    },
                 )
-                running[task["name"]] = (proc, log_f, log_path)
-            else:
-                print(f"[DRY-RUN] {task['name']} in {worktree} :: {command}")
-                completed[task["name"]] = 0
-            progress = True
 
-        to_remove = []
-        for name, (proc, log_f, log_path) in running.items():
-            ret = proc.poll()
-            if ret is not None:
-                log_f.close()
-                completed[name] = ret
-                print(f"[DONE] {name} exit={ret}")
-                to_remove.append(name)
+                if not args.dry_run:
+                    ensure_worktree(project_root, worktree, branch)
+                    log_path.parent.mkdir(parents=True, exist_ok=True)
+                    log_f = open(log_path, "w", encoding="utf-8")
+                    print(f"[START] {task['name']} -> {log_path}")
+                    proc = subprocess.Popen(
+                        command,
+                        cwd=worktree,
+                        shell=True,
+                        stdout=log_f,
+                        stderr=subprocess.STDOUT,
+                    )
+                    running[task["name"]] = (proc, log_f, log_path)
+                else:
+                    print(f"[DRY-RUN] {task['name']} in {worktree} :: {command}")
+                    completed[task["name"]] = 0
                 progress = True
 
-        for name in to_remove:
-            running.pop(name, None)
+            to_remove = []
+            for name, (proc, log_f, log_path) in running.items():
+                ret = proc.poll()
+                if ret is not None:
+                    log_f.close()
+                    completed[name] = ret
+                    print(f"[DONE] {name} exit={ret}")
+                    write_event(
+                        events_path,
+                        {
+                            "event": "task_end",
+                            "run_id": run_id,
+                            "task": name,
+                            "timestamp": iso_ts(time.time()),
+                            "exit_code": ret,
+                        },
+                    )
+                    to_remove.append(name)
+                    progress = True
 
-        if not progress and not running:
-            pending = [
-                task["name"]
-                for task in tasks
-                if task["name"] not in completed and task["name"] not in blocked
-            ]
-            raise RuntimeError(
-                "No runnable tasks remaining. Check for cyclic dependencies: "
-                + ", ".join(pending)
-            )
+            for name in to_remove:
+                running.pop(name, None)
 
-        time.sleep(1)
+            if not progress and not running:
+                pending = [
+                    task["name"]
+                    for task in tasks
+                    if task["name"] not in completed and task["name"] not in blocked
+                ]
+                raise RuntimeError(
+                    "No runnable tasks remaining. Check for cyclic dependencies: "
+                    + ", ".join(pending)
+                )
+
+            time.sleep(1)
+    except Exception as exc:
+        run_error = str(exc)
+        print(f"[ERROR] {run_error}")
+    finally:
+        if lock_created and lock_path.exists():
+            lock_path.unlink()
 
     summary_path = project_root / "docs" / "orchestrator-run-summary.md"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
+    run_finished_at = time.time()
     with summary_path.open("w", encoding="utf-8") as f:
         f.write("# Orchestrator Run Summary\n\n")
+        f.write(f"- Run ID: {run_id}\n")
+        f.write(f"- Phase: {args.phase}\n")
+        f.write(f"- Started: {iso_ts(run_started_at)}\n")
+        f.write(f"- Finished: {iso_ts(run_finished_at)}\n")
+        f.write(f"- Framework version: {framework_version}\n\n")
+        if run_error:
+            f.write(f"- Error: {run_error}\n\n")
         for task in tasks:
             name = task["name"]
             if name in completed:
@@ -221,9 +352,23 @@ def main():
                 status = f"BLOCKED (deps: {', '.join(deps)})"
             f.write(f"- {name}: {status}\n")
 
+    write_event(
+        events_path,
+        {
+            "event": "run_end",
+            "run_id": run_id,
+            "phase": args.phase,
+            "timestamp": iso_ts(run_finished_at),
+            "duration_sec": round(run_finished_at - run_started_at, 2),
+            "completed": completed,
+            "blocked": blocked,
+            "error": run_error,
+        },
+    )
+
     print(f"Summary saved to {summary_path}")
     exit_code = 0
-    if any(code != 0 for code in completed.values()) or blocked:
+    if any(code != 0 for code in completed.values()) or blocked or run_error:
         exit_code = 1
     sys.exit(exit_code)
 

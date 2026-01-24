@@ -54,12 +54,14 @@
 8) **DevOps (Vercel env, deploy pipelines)**
 9) **Test Plan (independent)** (по ТЗ и DoD)
 10) **Review Handoff Prep** (пакет для независимого ревью)
+11) **Framework Review (post-run)** (анализ работы фреймворка)
 
 ### Зависимости
 - UI зависит от выбора Tailwind UI компонентов (по протоколу).
 - Реальные расчёты субсидий точнее после реальных таблиц (A–D).
 - Интеграции (Supabase/Auth, Stripe/PayPal, SES) — после базового каркаса.
 - Независимый Review выполняется после ключевых dev‑задач + Test Plan.
+- Framework Review выполняется только между прогонами (post‑run).
 
 ---
 
@@ -122,6 +124,19 @@
 - Вход: `review/test-plan.md`, `review/review-brief.md`.
 - Выход: `review/code-review-report.md`, `review/bug-report.md`, `review/qa-coverage.md`.
 - Без изменения кода.
+
+### 3.12 Framework Review (post-run)
+**Цель:** анализ работы оркестратора и ошибок фреймворка.
+- Вход: `logs/framework-run.jsonl`, `docs/orchestrator-run-summary.md`.
+- Выход: `framework-review/framework-log-analysis.md`, `framework-review/framework-bug-report.md`.
+- Запускать только между прогонами (нет `logs/framework-run.lock`).
+- Запуск: `python3 framework/orchestrator/orchestrator.py --phase post`.
+
+### 3.13 Framework Fix (post-run, manual)
+**Цель:** исправить ошибки фреймворка по итогам Framework Review.
+- Вход: `framework-review/framework-bug-report.md`, `framework-review/framework-fix-plan.md`.
+- Выход: исправления в коде фреймворка.
+- Запускать только между прогонами.
 
 ---
 

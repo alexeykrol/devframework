@@ -73,3 +73,20 @@ command: "codex run --prompt docs/tasks/db-schema.md"
 - `review/handoff.md` — контекст и команды запуска от dev‑агента.
 - `review/test-plan.md` — независимый план тестирования.
 - `review/code-review-report.md`, `review/bug-report.md`, `review/qa-coverage.md`.
+
+---
+
+## 9) Framework Review (третий поток, post‑run)
+Идея: отдельный агент анализирует ошибки самого фреймворка между прогонами.
+
+**Правило:** третий поток запускается только после завершения main‑прогона.
+
+**Механика:**
+- Во время main‑прогона создаётся `logs/framework-run.lock`.
+- После завершения lock удаляется и можно запускать post‑run задачи.
+- Логи хранятся в `logs/framework-run.jsonl`.
+
+**Артефакты:**
+- `framework-review/framework-log-analysis.md`
+- `framework-review/framework-bug-report.md`
+- `framework-review/framework-fix-plan.md`

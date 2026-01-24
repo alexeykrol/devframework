@@ -63,3 +63,22 @@ tasks:
       - test-plan
       - review-prep
     log: logs/review.log
+
+  - name: framework-review
+    phase: post
+    branch: task/framework-review
+    worktree: ../incuragent-framework-review
+    prompt: docs/tasks/framework-review.md
+    runner: codex
+    log: logs/framework-review.log
+
+  - name: framework-fix
+    phase: post
+    manual: true
+    branch: task/framework-fix
+    worktree: ../incuragent-framework-fix
+    prompt: docs/tasks/framework-fix.md
+    runner: codex
+    depends_on:
+      - framework-review
+    log: logs/framework-fix.log

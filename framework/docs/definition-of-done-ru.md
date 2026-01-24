@@ -12,6 +12,7 @@
 - Все critical flows проверены вручную.
 - Независимый review выполнен (отчёт в `review/`).
 - Handoff для ревью подготовлен (`review/handoff.md`).
+- Framework review выполнен (см. `framework-review/`).
 - Миграции БД применены.
 - Rollback план подготовлен.
 - Обновлены release notes.
