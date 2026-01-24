@@ -1,5 +1,5 @@
 # Devframework
-![Release](https://img.shields.io/github/v/release/alexeykrol/devframework?display_name=tag)
+![Version](https://img.shields.io/github/v/tag/alexeykrol/devframework?label=version)
 
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
