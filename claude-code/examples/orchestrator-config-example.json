@@ -1,0 +1,172 @@
+{
+  "project_root": "/path/to/your/project",
+  "logs_directory": "framework/logs",
+
+  "runners": {
+    "claude-code": {
+      "type": "claude-code",
+      "command": "claude-code",
+      "autonomous_mode": {
+        "enabled": true,
+        "prepend_protocol": true,
+        "protocol_file": "claude-code/01-autonomous-mode-protocol.md"
+      }
+    },
+    "codex": {
+      "type": "codex",
+      "command": "codex --mode agent",
+      "autonomous_mode": {
+        "enabled": true,
+        "prepend_protocol": false
+      }
+    },
+    "aider": {
+      "type": "aider",
+      "command": "aider --yes --auto-commits"
+    }
+  },
+
+  "workflows": {
+    "sequential": {
+      "description": "Plan with Claude → Build with Codex → Review with Claude",
+      "phases": [
+        {
+          "name": "plan",
+          "agent": "claude-code",
+          "mode": "interactive"
+        },
+        {
+          "name": "build",
+          "agent": "codex",
+          "mode": "autonomous"
+        },
+        {
+          "name": "review",
+          "agent": "claude-code",
+          "mode": "interactive"
+        }
+      ]
+    },
+    "fallback": {
+      "description": "Try Claude first, escalate to Codex if stuck",
+      "primary_agent": "claude-code",
+      "fallback_agent": "codex",
+      "escalation_triggers": [
+        "no_progress_5min",
+        "ask_user_question_detected",
+        "time_budget_exceeded"
+      ]
+    }
+  },
+
+  "tasks": [
+    {
+      "id": "db-schema",
+      "file": "framework/tasks/db-schema.md",
+      "phase": "main",
+      "runner": "claude-code",
+      "execution_mode": "autonomous",
+      "time_budget": 45,
+      "depends_on": [],
+      "watchdog": {
+        "enabled": true,
+        "check_interval_seconds": 60,
+        "stuck_threshold_seconds": 300,
+        "progress_indicators": [
+          "files",
+          "commits",
+          "log"
+        ],
+        "escalation": {
+          "strategy": "escalate_to_codex",
+          "max_retries": 2
+        }
+      },
+      "validation": {
+        "check_autonomous_compliance": true,
+        "fail_on_ask_user": false,
+        "warn_on_violations": true
+      }
+    },
+
+    {
+      "id": "business-logic",
+      "file": "framework/tasks/business-logic.md",
+      "phase": "main",
+      "runner": "codex",
+      "execution_mode": "autonomous",
+      "time_budget": 90,
+      "depends_on": ["db-schema"],
+      "watchdog": {
+        "enabled": true,
+        "check_interval_seconds": 120,
+        "stuck_threshold_seconds": 600,
+        "progress_indicators": [
+          "commits",
+          "log"
+        ],
+        "escalation": {
+          "strategy": "notify"
+        }
+      }
+    },
+
+    {
+      "id": "ui-components",
+      "file": "framework/tasks/ui.md",
+      "phase": "main",
+      "runner": "claude-code",
+      "execution_mode": "autonomous",
+      "time_budget": 60,
+      "depends_on": ["business-logic"],
+      "watchdog": {
+        "enabled": true,
+        "check_interval_seconds": 60,
+        "stuck_threshold_seconds": 300,
+        "progress_indicators": [
+          "files",
+          "commits",
+          "tools"
+        ],
+        "escalation": {
+          "strategy": "escalate_to_codex",
+          "max_retries": 1
+        }
+      }
+    },
+
+    {
+      "id": "review-and-test",
+      "file": "framework/tasks/review.md",
+      "phase": "review",
+      "runner": "claude-code",
+      "execution_mode": "interactive",
+      "depends_on": ["db-schema", "business-logic", "ui-components"],
+      "watchdog": {
+        "enabled": false
+      }
+    },
+
+    {
+      "id": "framework-qa",
+      "file": "framework/tasks/framework-review.md",
+      "phase": "post",
+      "runner": "claude-code",
+      "execution_mode": "autonomous",
+      "time_budget": 30,
+      "depends_on": []
+    }
+  ],
+
+  "reporting": {
+    "enabled": true,
+    "export_on_completion": true,
+    "publish_to_github": false,
+    "github": {
+      "repository": "owner/repo",
+      "token_env": "GITHUB_TOKEN",
+      "create_issue": true,
+      "create_pr": false
+    }
+  }
+}
