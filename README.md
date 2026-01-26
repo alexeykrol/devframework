@@ -141,6 +141,7 @@ Auto-publish from orchestrator (no manual command):
   - `FRAMEWORK_REPORTING_INCLUDE_MIGRATION=1` (optional)
   - `FRAMEWORK_REPORTING_INCLUDE_REVIEW=1` (optional)
   - `FRAMEWORK_REPORTING_INCLUDE_TASK_LOGS=1` (optional, redacted)
+  - `FRAMEWORK_REPORTING_DRY_RUN=1` (optional; skips network, prints planned publish)
 - Requires `GITHUB_TOKEN`.
 
 Notes:
