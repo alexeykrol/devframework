@@ -17,6 +17,7 @@
 ## 3) Доступы и секреты (запрашивать по мере необходимости)
 - Политика: до реальной необходимости работаем без кредов; при первом использовании — стоп‑точка.
 - `.env` (примерные переменные):
+  - Пример файла: `framework/.env.example`.
   - Supabase: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_KEY`.
   - Stripe: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (если webhooks).
   - SES (опционально): `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `SES_SENDER`.
