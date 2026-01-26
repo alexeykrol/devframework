@@ -626,6 +626,10 @@ def maybe_publish_report(cfg, phase, run_id, framework_root: Path, framework_ver
         os.getenv("FRAMEWORK_REPORTING_INCLUDE_TASK_LOGS"),
         reporting.get("include_task_logs", False),
     )
+    dry_run = bool_from_env(
+        os.getenv("FRAMEWORK_REPORTING_DRY_RUN"),
+        reporting.get("dry_run", False),
+    )
 
     publish_script = framework_root / "tools" / "publish-report.py"
     if not publish_script.exists():
@@ -653,6 +657,8 @@ def maybe_publish_report(cfg, phase, run_id, framework_root: Path, framework_ver
         cmd.append("--include-review")
     if include_task_logs:
         cmd.append("--include-task-logs")
+    if dry_run:
+        cmd.append("--dry-run")
 
     res = subprocess.run(cmd, check=False, text=True, capture_output=True)
     if res.returncode != 0:
