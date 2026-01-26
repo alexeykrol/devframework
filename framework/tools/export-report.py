@@ -22,22 +22,22 @@ REPORTING_DIR = DOCS_DIR / "reporting"
 
 SENSITIVE_PATTERNS = [
     # key=value or key: value (env/logs)
-    (re.compile(r"(?i)\\b(api[-_ ]?key|token|secret|password|passwd|pwd|access[-_ ]?key|client[-_ ]?secret|private[-_ ]?key)\\b\\s*[:=]\\s*([^\\s\"'`]+)"), "kv"),
+    (re.compile(r"(?i)\b(api[-_ ]?key|token|secret|password|passwd|pwd|access[-_ ]?key|client[-_ ]?secret|private[-_ ]?key)\b\s*[:=]\s*([^\s\"'`]+)"), "kv"),
     # JSON style "key": "value"
-    (re.compile(r"(?i)\"(api[-_ ]?key|token|secret|password|passwd|pwd|access[-_ ]?key|client[-_ ]?secret|private[-_ ]?key)\"\\s*:\\s*\"([^\"]+)\""), "json"),
+    (re.compile(r"(?i)\"(api[-_ ]?key|token|secret|password|passwd|pwd|access[-_ ]?key|client[-_ ]?secret|private[-_ ]?key)\"\s*:\s*\"([^\"]+)\""), "json"),
     # Authorization/Bearer
-    (re.compile(r"(?i)authorization\\s*[:=]\\s*(bearer\\s+)?([^\\s\"'`]+)"), "auth"),
+    (re.compile(r"(?i)authorization\s*[:=]\s*(bearer\s+)?([^\s\"'`]+)"), "auth"),
     # AWS keys
     (re.compile(r"AKIA[0-9A-Z]{16}"), "fixed"),
-    (re.compile(r"(?i)(aws_secret_access_key)\\s*[:=]\\s*([^\\s\"'`]+)"), "kv"),
+    (re.compile(r"(?i)(aws_secret_access_key)\s*[:=]\s*([^\s\"'`]+)"), "kv"),
     # JWT-like tokens
-    (re.compile(r"eyJ[\\w-]{10,}\\.[\\w-]{10,}\\.[\\w-]{10,}"), "fixed"),
+    (re.compile(r"eyJ[\w-]{10,}\.[\w-]{10,}\.[\w-]{10,}"), "fixed"),
     # GitHub/Stripe/Supabase common tokens
     (re.compile(r"ghp_[0-9A-Za-z]{30,}"), "fixed"),
     (re.compile(r"github_pat_[0-9A-Za-z_]{20,}"), "fixed"),
-    (re.compile(r"sk_live_[0-9a-zA-Z]{20,}"), "fixed"),
-    (re.compile(r"sk_test_[0-9a-zA-Z]{20,}"), "fixed"),
-    (re.compile(r"whsec_[0-9a-zA-Z]{20,}"), "fixed"),
+    (re.compile(r"sk_live_[0-9a-zA-Z]{10,}"), "fixed"),
+    (re.compile(r"sk_test_[0-9a-zA-Z]{10,}"), "fixed"),
+    (re.compile(r"whsec_[0-9a-zA-Z]{10,}"), "fixed"),
 ]
 
 

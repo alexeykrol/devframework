@@ -235,9 +235,14 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
 
     # check tasks: prompt exists, worktree path is free or a git worktree
     preflight_run_id = "preflight"
+    worktrees_seen = {}
+    branches_seen = {}
     for task in tasks:
         if task.get("phase", "main") != phase:
             continue
+        runner_name = task.get("runner", "codex")
+        if runner_name not in runners:
+            errors.append(f"Task '{task['name']}' uses unknown runner '{runner_name}'")
         worktree_value = format_template(
             task["worktree"],
             run_id=preflight_run_id,
@@ -245,6 +250,27 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
             task=task["name"],
         )
         worktree = resolve_path(worktree_value, project_root)
+        worktree_key = str(worktree)
+        if worktree_key in worktrees_seen:
+            errors.append(
+                "Worktree path collision between "
+                f"'{worktrees_seen[worktree_key]}' and '{task['name']}': {worktree}"
+            )
+        else:
+            worktrees_seen[worktree_key] = task["name"]
+        branch_value = format_template(
+            task.get("branch", f"task/{task['name']}"),
+            run_id=preflight_run_id,
+            phase=phase,
+            task=task["name"],
+        )
+        if branch_value in branches_seen:
+            errors.append(
+                "Branch collision between "
+                f"'{branches_seen[branch_value]}' and '{task['name']}': {branch_value}"
+            )
+        else:
+            branches_seen[branch_value] = task["name"]
         if worktree.exists() and not is_git_worktree(worktree):
             errors.append(
                 f"Worktree path exists and is not a git worktree: {worktree}"
@@ -252,6 +278,8 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
         prompt_path = resolve_path(task["prompt"], project_root)
         if not prompt_path.exists():
             errors.append(f"Prompt file not found: {prompt_path}")
+        elif prompt_path.is_dir():
+            errors.append(f"Prompt path is a directory: {prompt_path}")
 
     if errors:
         raise RuntimeError("Preflight failed:\n- " + "\n- ".join(errors))
