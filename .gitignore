@@ -1,3 +1,6 @@
 .DS_Store
 framework/logs/
 framework/outbox/
+framework/docs/orchestrator-run-summary-*.md
+__pycache__/
+*.pyc

@@ -67,6 +67,8 @@ def main() -> None:
     parser.add_argument("--run-id", default="unknown")
     parser.add_argument("--zip", dest="zip_path")
     parser.add_argument("--host-id", default="unknown-host")
+    parser.add_argument("--phase", default="unknown")
+    parser.add_argument("--framework-version", default="unknown")
     parser.add_argument("--mode", choices=["pr", "issue", "both"], default="pr")
     parser.add_argument("--base", default="main")
     parser.add_argument("--include-migration", action="store_true")
@@ -122,19 +124,34 @@ def main() -> None:
     pr_url = None
     issue_url = None
     api_base = f"https://api.github.com/repos/{args.repo}"
+    report_body = "\n".join(
+        [
+            "## Report Metadata",
+            f"- Host ID: {args.host_id}",
+            f"- Run ID: {run_id}",
+            f"- Phase: {args.phase}",
+            f"- Framework version: {args.framework_version}",
+            f"- Bundle path: `{report_path}`",
+            "",
+            "## Next Steps",
+            "- Use the bug report template at `framework/docs/reporting/bug-report-template.md`.",
+            "- Attach relevant logs or point to the report bundle above.",
+        ]
+    )
+
     if args.mode in ("pr", "both"):
         payload = {
             "title": f"Report {run_id} from {args.host_id}",
             "head": branch,
             "base": args.base,
-            "body": f"Automated report bundle: `{report_path}`",
+            "body": report_body,
         }
         pr_url = json.loads(github_request(args.token, "POST", f"{api_base}/pulls", payload)).get("html_url")
 
     if args.mode in ("issue", "both"):
         payload = {
             "title": f"Report {run_id} from {args.host_id}",
-            "body": f"Bundle committed at `{report_path}` in branch `{branch}`.",
+            "body": report_body + f"\n\nBranch: `{branch}`.",
         }
         issue_url = json.loads(github_request(args.token, "POST", f"{api_base}/issues", payload)).get("html_url")
 

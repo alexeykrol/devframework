@@ -11,27 +11,56 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 VERSION_PATH = ROOT / "VERSION"
 SUMMARY_PATH = ROOT / "docs" / "orchestrator-run-summary.md"
+DOCS_DIR = ROOT / "docs"
 LOGS_DIR = ROOT / "logs"
 REVIEW_DIR = ROOT / "review"
 FRAMEWORK_REVIEW_DIR = ROOT / "framework-review"
 MIGRATION_DIR = ROOT / "migration"
 ORCH_DIR = ROOT / "orchestrator"
 OUTBOX_DIR = ROOT / "outbox"
+REPORTING_DIR = DOCS_DIR / "reporting"
 
 SENSITIVE_PATTERNS = [
-    re.compile(r"(?i)(api[-_ ]?key|token|secret|password)\s*[:=]\s*([^\s\"']+)"),
-    re.compile(r"(?i)(authorization|bearer)\s*[:=]\s*([^\s\"']+)"),
-    re.compile(r"AKIA[0-9A-Z]{16}"),  # AWS access key
-    re.compile(r"(?i)aws_secret_access_key[^\\n\\r]*", re.MULTILINE),
-    re.compile(r"eyJ[\\w-]{10,}\\.[\\w-]{10,}\\.[\\w-]{10,}"),  # JWT-like tokens
+    # key=value or key: value (env/logs)
+    (re.compile(r"(?i)\\b(api[-_ ]?key|token|secret|password|passwd|pwd|access[-_ ]?key|client[-_ ]?secret|private[-_ ]?key)\\b\\s*[:=]\\s*([^\\s\"'`]+)"), "kv"),
+    # JSON style "key": "value"
+    (re.compile(r"(?i)\"(api[-_ ]?key|token|secret|password|passwd|pwd|access[-_ ]?key|client[-_ ]?secret|private[-_ ]?key)\"\\s*:\\s*\"([^\"]+)\""), "json"),
+    # Authorization/Bearer
+    (re.compile(r"(?i)authorization\\s*[:=]\\s*(bearer\\s+)?([^\\s\"'`]+)"), "auth"),
+    # AWS keys
+    (re.compile(r"AKIA[0-9A-Z]{16}"), "fixed"),
+    (re.compile(r"(?i)(aws_secret_access_key)\\s*[:=]\\s*([^\\s\"'`]+)"), "kv"),
+    # JWT-like tokens
+    (re.compile(r"eyJ[\\w-]{10,}\\.[\\w-]{10,}\\.[\\w-]{10,}"), "fixed"),
+    # GitHub/Stripe/Supabase common tokens
+    (re.compile(r"ghp_[0-9A-Za-z]{30,}"), "fixed"),
+    (re.compile(r"github_pat_[0-9A-Za-z_]{20,}"), "fixed"),
+    (re.compile(r"sk_live_[0-9a-zA-Z]{20,}"), "fixed"),
+    (re.compile(r"sk_test_[0-9a-zA-Z]{20,}"), "fixed"),
+    (re.compile(r"whsec_[0-9a-zA-Z]{20,}"), "fixed"),
 ]
 
 
+def _redact_match(mode: str, match: re.Match) -> str:
+    if mode == "kv":
+        return f"{match.group(1)}: ***"
+    if mode == "json":
+        return f"\"{match.group(1)}\": \"***\""
+    if mode == "auth":
+        prefix = match.group(1) or ""
+        return f"authorization: {prefix}***".strip()
+    return "***"
+
+
 def redact_text(text: str) -> str:
-    for pattern in SENSITIVE_PATTERNS:
-        text = pattern.sub(r"\1: ***", text)
+    for pattern, mode in SENSITIVE_PATTERNS:
+        text = pattern.sub(lambda m: _redact_match(mode, m), text)
     if "PRIVATE KEY" in text:
-        text = re.sub(r"-----BEGIN[^-]+-----[\s\S]*?-----END[^-]+-----", "<REDACTED PRIVATE KEY>", text)
+        text = re.sub(
+            r"-----BEGIN[^-]+-----[\s\S]*?-----END[^-]+-----",
+            "<REDACTED PRIVATE KEY>",
+            text,
+        )
     return text
 
 
@@ -39,6 +68,8 @@ def parse_run_id() -> str:
     if SUMMARY_PATH.exists():
         for line in SUMMARY_PATH.read_text(encoding="utf-8", errors="ignore").splitlines():
             if line.startswith("- Run ID:"):
+                return line.split(":", 1)[1].strip()
+            if line.startswith("- Latest Run ID:"):
                 return line.split(":", 1)[1].strip()
     jsonl = LOGS_DIR / "framework-run.jsonl"
     if jsonl.exists():
@@ -108,6 +139,10 @@ def main() -> None:
         if SUMMARY_PATH.exists():
             copy_file(SUMMARY_PATH, tmp_root / "docs/orchestrator-run-summary.md", redact=False)
             collected.append(str(tmp_root / "docs/orchestrator-run-summary.md"))
+        if DOCS_DIR.exists():
+            for path in DOCS_DIR.glob("orchestrator-run-summary-*.md"):
+                copy_file(path, tmp_root / f"docs/{path.name}", redact=False)
+                collected.append(str(tmp_root / f"docs/{path.name}"))
 
         if VERSION_PATH.exists():
             copy_file(VERSION_PATH, tmp_root / "VERSION", redact=False)
@@ -133,6 +168,8 @@ def main() -> None:
 
         if ORCH_DIR.exists():
             add_tree(ORCH_DIR, tmp_root / "orchestrator", redact=False, collected=collected)
+        if REPORTING_DIR.exists():
+            add_tree(REPORTING_DIR, tmp_root / "docs/reporting", redact=False, collected=collected)
 
         manifest = {
             "run_id": run_id,

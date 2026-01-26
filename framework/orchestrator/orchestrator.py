@@ -459,27 +459,37 @@ def main():
         if lock_created and lock_path.exists():
             lock_path.unlink()
 
-    summary_path = project_root / "framework" / "docs" / "orchestrator-run-summary.md"
-    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    docs_dir = project_root / "framework" / "docs"
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    summary_latest = docs_dir / "orchestrator-run-summary.md"
+    summary_run = docs_dir / f"orchestrator-run-summary-{args.phase}-{run_id}.md"
     run_finished_at = time.time()
-    with summary_path.open("w", encoding="utf-8") as f:
-        f.write("# Orchestrator Run Summary\n\n")
-        f.write(f"- Run ID: {run_id}\n")
-        f.write(f"- Phase: {args.phase}\n")
-        f.write(f"- Started: {iso_ts(run_started_at)}\n")
-        f.write(f"- Finished: {iso_ts(run_finished_at)}\n")
-        f.write(f"- Framework version: {framework_version}\n\n")
-        if run_error:
-            f.write(f"- Error: {run_error}\n\n")
-        for task in tasks:
-            name = task["name"]
-            if name in completed:
-                code = completed[name]
-                status = "OK" if code == 0 else f"FAIL ({code})"
-            else:
-                deps = blocked.get(name, [])
-                status = f"BLOCKED (deps: {', '.join(deps)})"
-            f.write(f"- {name}: {status}\n")
+
+    def write_summary(path: Path, include_pointer: bool = False) -> None:
+        with path.open("w", encoding="utf-8") as f:
+            f.write("# Orchestrator Run Summary\n\n")
+            f.write(f"- Run ID: {run_id}\n")
+            f.write(f"- Phase: {args.phase}\n")
+            f.write(f"- Started: {iso_ts(run_started_at)}\n")
+            f.write(f"- Finished: {iso_ts(run_finished_at)}\n")
+            f.write(f"- Framework version: {framework_version}\n")
+            if include_pointer:
+                f.write(f"- Summary file: {summary_run.name}\n")
+            f.write("\n")
+            if run_error:
+                f.write(f"- Error: {run_error}\n\n")
+            for task in tasks:
+                name = task["name"]
+                if name in completed:
+                    code = completed[name]
+                    status = "OK" if code == 0 else f"FAIL ({code})"
+                else:
+                    deps = blocked.get(name, [])
+                    status = f"BLOCKED (deps: {', '.join(deps)})"
+                f.write(f"- {name}: {status}\n")
+
+    write_summary(summary_run, include_pointer=False)
+    write_summary(summary_latest, include_pointer=True)
 
     write_event(
         events_path,
@@ -495,11 +505,13 @@ def main():
         },
     )
 
-    print(f"Summary saved to {summary_path}")
+    print(f"Summary saved to {summary_run}")
     publish_error = None
     try:
         if not args.dry_run:
-            publish_error = maybe_publish_report(cfg, args.phase, run_id, framework_root)
+            publish_error = maybe_publish_report(
+                cfg, args.phase, run_id, framework_root, framework_version
+            )
     except Exception as exc:
         publish_error = str(exc)
         print(f"[REPORT] {publish_error}")
@@ -533,7 +545,7 @@ def parse_phases(value, default):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def maybe_publish_report(cfg, phase, run_id, framework_root: Path):
+def maybe_publish_report(cfg, phase, run_id, framework_root: Path, framework_version: str):
     reporting = cfg.get("reporting") or {}
     enabled = bool_from_env(os.getenv("FRAMEWORK_REPORTING_ENABLED"), reporting.get("enabled", False))
     if not enabled:
@@ -581,6 +593,10 @@ def maybe_publish_report(cfg, phase, run_id, framework_root: Path):
         host_id,
         "--mode",
         mode,
+        "--phase",
+        phase,
+        "--framework-version",
+        framework_version,
     ]
     if include_migration:
         cmd.append("--include-migration")
