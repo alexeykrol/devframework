@@ -74,10 +74,11 @@ def main() -> None:
     parser.add_argument("--include-migration", action="store_true")
     parser.add_argument("--include-review", action="store_true")
     parser.add_argument("--include-task-logs", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--token", default=os.getenv("GITHUB_TOKEN"))
     args = parser.parse_args()
 
-    if not args.token:
+    if not args.token and not args.dry_run:
         raise SystemExit("GITHUB_TOKEN is required")
 
     run_id = args.run_id
@@ -92,6 +93,17 @@ def main() -> None:
 
     branch = f"reports/{args.host_id}/{run_id}"
     report_path = Path("reports") / args.host_id / f"report-{run_id}.zip"
+
+    if args.dry_run:
+        print("DRY-RUN: publish-report")
+        print(f"  repo: {args.repo}")
+        print(f"  branch: {branch}")
+        print(f"  report_path: {report_path}")
+        print(f"  zip: {zip_path}")
+        print(f"  mode: {args.mode}")
+        print(f"  phase: {args.phase}")
+        print(f"  framework_version: {args.framework_version}")
+        return
 
     with tempfile.TemporaryDirectory() as tmpdir:
         repo_dir = Path(tmpdir) / "repo"
