@@ -2,6 +2,8 @@
 import argparse
 import json
 import os
+import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -200,6 +202,61 @@ def build_command(runners, task, prompt_path: Path):
     return template.format(prompt=str(prompt_path))
 
 
+def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, phase: str):
+    errors = []
+
+    if shutil.which("git") is None:
+        errors.append("git is not available on PATH")
+
+    # ensure logs dir writable
+    try:
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        probe = logs_dir / ".write_probe"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink(missing_ok=True)
+    except Exception as exc:  # noqa: BLE001
+        errors.append(f"logs_dir is not writable: {logs_dir} ({exc})")
+
+    # check runners binaries
+    for name, cfg in runners.items():
+        cmd = cfg.get("command")
+        if not cmd:
+            errors.append(f"Runner '{name}' has empty command")
+            continue
+        try:
+            first = shlex.split(cmd, posix=True)[0]
+        except ValueError:
+            errors.append(f"Runner '{name}' command cannot be parsed: {cmd}")
+            continue
+        if first in {"bash", "sh", "zsh"}:
+            continue
+        if shutil.which(first) is None:
+            errors.append(f"Runner '{name}' binary not found on PATH: {first}")
+
+    # check tasks: prompt exists, worktree path is free or a git worktree
+    preflight_run_id = "preflight"
+    for task in tasks:
+        if task.get("phase", "main") != phase:
+            continue
+        worktree_value = format_template(
+            task["worktree"],
+            run_id=preflight_run_id,
+            phase=phase,
+            task=task["name"],
+        )
+        worktree = resolve_path(worktree_value, project_root)
+        if worktree.exists() and not is_git_worktree(worktree):
+            errors.append(
+                f"Worktree path exists and is not a git worktree: {worktree}"
+            )
+        prompt_path = resolve_path(task["prompt"], project_root)
+        if not prompt_path.exists():
+            errors.append(f"Prompt file not found: {prompt_path}")
+
+    if errors:
+        raise RuntimeError("Preflight failed:\n- " + "\n- ".join(errors))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="framework/orchestrator/orchestrator.json")
@@ -218,15 +275,20 @@ def main():
     if not is_git_repo(project_root):
         raise RuntimeError(f"project_root is not a git repository: {project_root}")
 
-    logs_dir = resolve_path(cfg.get("logs_dir", "logs"), project_root)
-    logs_dir.mkdir(parents=True, exist_ok=True)
-
     runners = cfg.get("runners", {})
+    if bool_from_env(os.getenv("FRAMEWORK_RUNNER_NOOP")):
+        for name in list(runners.keys()):
+            runners[name]["command"] = 'cat "{prompt}" > /dev/null'
+        print("[PREFLIGHT] FRAMEWORK_RUNNER_NOOP=1 — runner commands set to no-op")
     tasks, _ = normalize_tasks(cfg.get("tasks", []))
     tasks = select_tasks(tasks, args.phase, args.include_manual)
 
     if not tasks:
         raise RuntimeError(f"No tasks selected for phase '{args.phase}'")
+
+    logs_dir = resolve_path(cfg.get("logs_dir", "logs"), project_root)
+    preflight(project_root, logs_dir, runners, tasks, args.phase)
+    logs_dir.mkdir(parents=True, exist_ok=True)
 
     running = {}
     completed = {}

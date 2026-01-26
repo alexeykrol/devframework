@@ -20,7 +20,10 @@ OUTBOX_DIR = ROOT / "outbox"
 
 SENSITIVE_PATTERNS = [
     re.compile(r"(?i)(api[-_ ]?key|token|secret|password)\s*[:=]\s*([^\s\"']+)"),
-    re.compile(r"(?i)(authorization|bearer)\s*[:=]\s*([^\s\"']+)")
+    re.compile(r"(?i)(authorization|bearer)\s*[:=]\s*([^\s\"']+)"),
+    re.compile(r"AKIA[0-9A-Z]{16}"),  # AWS access key
+    re.compile(r"(?i)aws_secret_access_key[^\\n\\r]*", re.MULTILINE),
+    re.compile(r"eyJ[\\w-]{10,}\\.[\\w-]{10,}\\.[\\w-]{10,}"),  # JWT-like tokens
 ]
 
 
