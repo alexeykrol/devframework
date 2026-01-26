@@ -11,6 +11,7 @@
 ## Outputs
 - framework/docs/discovery/interview.md — протокол вопросов/ответов.
 - framework/docs/tech-spec-generated.md — структурированное ТЗ.
+- framework/docs/overview.md — обзорный документ с оглавлением и ссылками.
 - framework/docs/plan-generated.md — план задач/итераций с зависимостями.
 - framework/docs/data-inputs-generated.md — перечень требуемых данных/шаблонов/фикстур.
 - framework/review/test-plan.md — заполненный тест‑план (unit/E2E/acceptance/perf/security).

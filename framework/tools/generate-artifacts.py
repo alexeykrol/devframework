@@ -201,6 +201,35 @@ def build_test_plan() -> str:
 """.strip()
 
 
+def build_overview(answers: dict) -> str:
+    return f"""
+# Overview (self-host devframework)
+
+## Идея в одном абзаце
+{get_answer(answers, "1", "UNKNOWN: цель продукта")}
+
+## Критерий успеха
+{get_answer(answers, "8", "UNKNOWN: критерии успеха")}
+
+## Роль пользователя
+{get_answer(answers, "2", "UNKNOWN: роли/персоны")}
+
+## Стек и деплой
+- Стек: {get_answer(answers, "14", "UNKNOWN")}
+- Деплой: {get_answer(answers, "16", "UNKNOWN")}
+
+## Оглавление (ключевые артефакты)
+1) ТЗ: `docs/tech-spec-generated.md`
+2) План работ: `docs/plan-generated.md`
+3) Входные данные/секреты: `docs/data-inputs-generated.md`
+4) План тестирования: `review/test-plan.md`
+5) Бэклог улучшений: `docs/backlog.md`
+6) Шаблон баг‑репорта: `docs/reporting/bug-report-template.md`
+7) Карта оркестрации: `docs/orchestrator-plan-ru.md`
+8) Требуемые входы: `docs/inputs-required-ru.md`
+""".strip()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate framework artifacts from discovery interview.")
     parser.add_argument("--interview", default="framework/docs/discovery/interview.md")
@@ -218,6 +247,7 @@ def main() -> None:
     write_file(docs_dir / "tech-spec-generated.md", build_tech_spec(answers), overwrite=args.overwrite)
     write_file(docs_dir / "plan-generated.md", build_plan(), overwrite=args.overwrite)
     write_file(docs_dir / "data-inputs-generated.md", build_data_inputs(answers), overwrite=args.overwrite)
+    write_file(docs_dir / "overview.md", build_overview(answers), overwrite=args.overwrite)
     write_file(review_dir / "test-plan.md", build_test_plan(), overwrite=args.overwrite)
 
 
