@@ -237,6 +237,7 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
     preflight_run_id = "preflight"
     worktrees_seen = {}
     branches_seen = {}
+    logs_seen = {}
     for task in tasks:
         if task.get("phase", "main") != phase:
             continue
@@ -280,6 +281,26 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
             errors.append(f"Prompt file not found: {prompt_path}")
         elif prompt_path.is_dir():
             errors.append(f"Prompt path is a directory: {prompt_path}")
+        log_value = task.get("log")
+        if log_value:
+            log_value = format_template(
+                log_value,
+                run_id=preflight_run_id,
+                phase=phase,
+                task=task["name"],
+            )
+            log_path = resolve_path(log_value, project_root)
+        else:
+            log_path = logs_dir / f"{task['name']}.log"
+        log_key = str(log_path)
+        if log_key in logs_seen:
+            errors.append(
+                f"Log path collision between '{logs_seen[log_key]}' and '{task['name']}': {log_path}"
+            )
+        else:
+            logs_seen[log_key] = task["name"]
+        if log_path.exists() and log_path.is_dir():
+            errors.append(f"Log path is a directory: {log_path}")
 
     if errors:
         raise RuntimeError("Preflight failed:\n- " + "\n- ".join(errors))

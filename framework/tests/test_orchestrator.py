@@ -43,6 +43,8 @@ class OrchestratorTests(unittest.TestCase):
             prompt_dir.mkdir(parents=True, exist_ok=True)
             prompt_file = prompt_dir / "p.md"
             prompt_file.write_text("ok", encoding="utf-8")
+            log_dir = project_root / "logdir"
+            log_dir.mkdir(parents=True, exist_ok=True)
 
             runners = {"codex": {"command": "python3 -c \"print('ok')\""}}
             tasks = [
@@ -52,6 +54,7 @@ class OrchestratorTests(unittest.TestCase):
                     "prompt": str(prompt_file),
                     "runner": "codex",
                     "branch": "task/shared",
+                    "log": "logs/shared.log",
                 },
                 {
                     "name": "b",
@@ -59,6 +62,15 @@ class OrchestratorTests(unittest.TestCase):
                     "prompt": str(prompt_dir),
                     "runner": "codex",
                     "branch": "task/shared",
+                    "log": "logs/shared.log",
+                },
+                {
+                    "name": "c",
+                    "worktree": "wt/unique",
+                    "prompt": str(prompt_file),
+                    "runner": "codex",
+                    "branch": "task/unique",
+                    "log": str(log_dir),
                 },
             ]
             normalized, _ = orchestrator.normalize_tasks(tasks)
@@ -68,6 +80,8 @@ class OrchestratorTests(unittest.TestCase):
             self.assertIn("Worktree path collision", msg)
             self.assertIn("Branch collision", msg)
             self.assertIn("Prompt path is a directory", msg)
+            self.assertIn("Log path collision", msg)
+            self.assertIn("Log path is a directory", msg)
 
 
 if __name__ == "__main__":
