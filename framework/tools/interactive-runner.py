@@ -51,6 +51,7 @@ def run_interactive(
     os.close(slave_fd)
 
     stdin_fd = sys.stdin.fileno()
+    stdin_is_tty = sys.stdin.isatty()
     stdout_fd = sys.stdout.fileno()
     buffer = b""
     pause_requested = False
@@ -81,7 +82,9 @@ def run_interactive(
         while True:
             if proc.poll() is not None:
                 break
-            read_fds = [master_fd, stdin_fd]
+            read_fds = [master_fd]
+            if stdin_is_tty:
+                read_fds.append(stdin_fd)
             ready, _, _ = select.select(read_fds, [], [], 0.25)
             if master_fd in ready:
                 data = os.read(master_fd, 4096)
@@ -90,7 +93,7 @@ def run_interactive(
                 os.write(stdout_fd, data)
                 log_f.write(data)
                 log_f.flush()
-            if stdin_fd in ready:
+            if stdin_is_tty and stdin_fd in ready:
                 data = os.read(stdin_fd, 4096)
                 if not data:
                     break
