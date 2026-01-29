@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+import fcntl
 import os
 import select
+import shlex
 import signal
 import subprocess
 import sys
+import termios
 import time
 from pathlib import Path
 
@@ -26,23 +29,25 @@ def run_interactive(
 
     master_fd, slave_fd = os.openpty()
     if len(command) == 1:
-        proc = subprocess.Popen(
-            command[0],
-            stdin=slave_fd,
-            stdout=slave_fd,
-            stderr=slave_fd,
-            shell=True,
-            preexec_fn=os.setsid,
-        )
+        cmd = shlex.split(command[0])
     else:
-        proc = subprocess.Popen(
-            command,
-            stdin=slave_fd,
-            stdout=slave_fd,
-            stderr=slave_fd,
-            shell=False,
-            preexec_fn=os.setsid,
-        )
+        cmd = command
+
+    def setup_child() -> None:
+        os.setsid()
+        try:
+            fcntl.ioctl(slave_fd, termios.TIOCSCTTY, 0)
+        except Exception:
+            pass
+
+    proc = subprocess.Popen(
+        cmd,
+        stdin=slave_fd,
+        stdout=slave_fd,
+        stderr=slave_fd,
+        shell=False,
+        preexec_fn=setup_child,
+    )
     os.close(slave_fd)
 
     stdin_fd = sys.stdin.fileno()
