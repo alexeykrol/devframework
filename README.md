@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.29.7-blue)
+![Version](https://img.shields.io/badge/version-2026.01.29.8-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
@@ -196,9 +196,9 @@ Devframework изначально создавался для работы с **
   ```
   python3 --version
   ```
-- Network access to GitHub for downloading `framework.zip` (not required if you pass `--zip`).
+- Network access to GitHub to check and download the latest release.
 - (Optional) `curl` installed; if missing, Python will download the zip instead.
-- If `./framework` already exists, the launcher auto-updates when remote version differs.
+- If `./framework` already exists, the launcher auto-updates when the latest release differs.
   Use `--update` to force a refresh or when using a local zip.
 
 Options:
@@ -219,6 +219,7 @@ Auto-detection:
 - Status line: `FRAMEWORK_STATUS_INTERVAL=10` (seconds between `[STATUS]` lines).
 - Watcher poll: `FRAMEWORK_WATCH_POLL=2`.
 - Stall detection: `FRAMEWORK_STALL_TIMEOUT=900` and `FRAMEWORK_STALL_KILL=1`.
+- Offline fallback (skip GitHub download): `FRAMEWORK_OFFLINE=1`.
 
 ## End-to-end flows (memory cheatsheet)
 
