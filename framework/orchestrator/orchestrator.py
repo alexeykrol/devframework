@@ -583,6 +583,15 @@ def main():
                             cmd += ["--pause-marker", str(pause_marker)]
                         if resume_interactive:
                             cmd.append("--append")
+                        cmd_name = ""
+                        if isinstance(command, str):
+                            parts = shlex.split(command)
+                            if parts:
+                                cmd_name = parts[0]
+                        elif command:
+                            cmd_name = command[0]
+                        if cmd_name == "codex":
+                            cmd += ["--prompt-mode", "arg"]
                         cmd += ["--", command]
                         proc = subprocess.Popen(cmd, cwd=worktree)
                         running[task["name"]] = (proc, None, log_path, interactive, pause_marker)

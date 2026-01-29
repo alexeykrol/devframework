@@ -22,6 +22,7 @@ def run_interactive(
     pause_marker: Path | None,
     pause_cmd: str,
     prompt_file: Path | None,
+    prompt_mode: str,
     append: bool,
 ) -> int:
     transcript.parent.mkdir(parents=True, exist_ok=True)
@@ -32,6 +33,17 @@ def run_interactive(
         cmd = shlex.split(command[0])
     else:
         cmd = command
+
+    prompt_payload = None
+    if prompt_file:
+        try:
+            prompt_payload = prompt_file.read_text(encoding="utf-8")
+        except Exception:
+            prompt_payload = None
+
+    if prompt_mode == "arg" and prompt_payload is not None:
+        cmd = cmd + [prompt_payload.rstrip()]
+        prompt_payload = None
 
     def setup_child() -> None:
         os.setsid()
@@ -58,13 +70,9 @@ def run_interactive(
     pause_deadline = None
 
     def send_prompt() -> None:
-        if not prompt_file:
+        if not prompt_payload:
             return
-        try:
-            text = prompt_file.read_text(encoding="utf-8")
-        except Exception:
-            return
-        payload = text.rstrip() + "\n"
+        payload = prompt_payload.rstrip() + "\n"
         os.write(master_fd, payload.encode("utf-8"))
 
     # Send initial prompt once to seed the interactive session.
@@ -147,6 +155,12 @@ def main() -> int:
     parser.add_argument("--pause-marker")
     parser.add_argument("--pause-command", default="/pause")
     parser.add_argument("--prompt-file")
+    parser.add_argument(
+        "--prompt-mode",
+        choices=["stdin", "arg"],
+        default="stdin",
+        help="How to deliver the prompt (stdin or argv).",
+    )
     parser.add_argument("--append", action="store_true")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -166,6 +180,7 @@ def main() -> int:
         pause_marker,
         args.pause_command,
         prompt_file,
+        args.prompt_mode,
         args.append,
     )
 

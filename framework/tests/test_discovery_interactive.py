@@ -43,6 +43,38 @@ class InteractiveDiscoveryTests(unittest.TestCase):
             self.assertIn("TTY=1", data)
             self.assertIn("LINE=HELLO", data)
 
+    def test_interactive_runner_prompt_arg_mode(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            prompt = tmp / "prompt.md"
+            transcript = tmp / "transcript.log"
+            prompt.write_text("HELLO ARG", encoding="utf-8")
+
+            child = (
+                "import sys\n"
+                "print('ARGC=%d' % len(sys.argv))\n"
+                "print('ARG=' + sys.argv[1])\n"
+            )
+            cmd = [
+                sys.executable,
+                str(RUNNER),
+                "--transcript",
+                str(transcript),
+                "--prompt-file",
+                str(prompt),
+                "--prompt-mode",
+                "arg",
+                "--",
+                sys.executable,
+                "-c",
+                child,
+            ]
+            res = subprocess.run(cmd, check=False, text=True)
+            self.assertEqual(res.returncode, 0)
+            data = transcript.read_text(encoding="utf-8", errors="ignore")
+            self.assertIn("ARGC=2", data)
+            self.assertIn("ARG=HELLO ARG", data)
+
     def test_protocol_watch_tails_latest_run(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmp = Path(tmpdir)
