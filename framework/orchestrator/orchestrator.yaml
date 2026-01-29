@@ -13,6 +13,7 @@ reporting:
   host_id: unknown-host
   phases:
     - legacy
+    - discovery
     - post
     - main
   include_migration: true
@@ -23,6 +24,8 @@ reporting:
 runners:
   codex:
     command: "codex exec - < \"{prompt}\""
+  codex-interactive:
+    command: "codex"
   claude:
     command: "claude-code --prompt {prompt}"
   aider:
@@ -30,37 +33,47 @@ runners:
 
 # Задачи (пример)
 tasks:
+  - name: discovery
+    phase: discovery
+    branch: task/discovery
+    worktree: _worktrees/{phase}/{task}
+    prompt: framework/tasks/discovery.md
+    runner: codex-interactive
+    interactive: true
+    log: framework/logs/discovery.transcript.log
+    pause_marker: framework/logs/discovery.pause
+
   - name: db-schema
     branch: task/db-schema
-    worktree: ../incuragent-db
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/db-schema.md
     runner: codex
     log: framework/logs/db-schema.log
 
   - name: business-logic
     branch: task/business-logic
-    worktree: ../incuragent-logic
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/business-logic.md
     runner: codex
     log: framework/logs/business-logic.log
 
   - name: ui
     branch: task/ui
-    worktree: ../incuragent-ui
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/ui.md
     runner: codex
     log: framework/logs/ui.log
 
   - name: test-plan
     branch: task/test-plan
-    worktree: ../incuragent-test-plan
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/test-plan.md
     runner: codex
     log: framework/logs/test-plan.log
 
   - name: review-prep
     branch: task/review-prep
-    worktree: ../incuragent-review-prep
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/review-prep.md
     runner: codex
     depends_on:
@@ -71,7 +84,7 @@ tasks:
 
   - name: review
     branch: task/review
-    worktree: ../incuragent-review
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/review.md
     runner: codex
     depends_on:
@@ -82,7 +95,7 @@ tasks:
   - name: framework-review
     phase: post
     branch: task/framework-review
-    worktree: ../incuragent-framework-review
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/framework-review.md
     runner: codex
     log: framework/logs/framework-review.log
@@ -91,7 +104,7 @@ tasks:
     phase: post
     manual: true
     branch: task/framework-fix
-    worktree: ../incuragent-framework-fix
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/framework-fix.md
     runner: codex
     depends_on:
@@ -101,7 +114,7 @@ tasks:
   - name: legacy-audit
     phase: legacy
     branch: task/legacy-audit
-    worktree: ../incuragent-legacy-audit
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/legacy-audit.md
     runner: codex
     log: framework/logs/legacy-audit.log
@@ -109,7 +122,7 @@ tasks:
   - name: legacy-tech-spec
     phase: legacy
     branch: task/legacy-tech-spec
-    worktree: ../incuragent-legacy-tech-spec
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/legacy-tech-spec.md
     runner: codex
     depends_on:
@@ -119,7 +132,7 @@ tasks:
   - name: legacy-gap
     phase: legacy
     branch: task/legacy-gap
-    worktree: ../incuragent-legacy-gap
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/legacy-gap.md
     runner: codex
     depends_on:
@@ -129,7 +142,7 @@ tasks:
   - name: legacy-migration-plan
     phase: legacy
     branch: task/legacy-migration-plan
-    worktree: ../incuragent-legacy-migration-plan
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/legacy-migration-plan.md
     runner: codex
     depends_on:
@@ -140,7 +153,7 @@ tasks:
     phase: legacy
     manual: true
     branch: legacy-migration-{run_id}
-    worktree: ../incuragent-legacy-migration-{run_id}
+    worktree: _worktrees/{phase}/{task}
     prompt: framework/tasks/legacy-apply.md
     runner: codex
     depends_on:

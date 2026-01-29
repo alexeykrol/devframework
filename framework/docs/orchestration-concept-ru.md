@@ -31,10 +31,21 @@ Python удобнее для:
    python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.json
    ```
 4) Оркестратор:
-   - создаст worktree для каждой задачи,
+   - создаст worktree для каждой задачи (по умолчанию `_worktrees/{phase}/{task}`),
    - запустит команды,
    - запишет лог в `framework/logs/*.log`,
-   - создаст отчет `framework/docs/orchestrator-run-summary.md`.
+   - создаст отчет `framework/docs/orchestrator-run-summary.md`,
+   - периодически печатает `[RUNNING] ...` для признака жизни (интервал задаётся `FRAMEWORK_PROGRESS_INTERVAL`).
+
+**Ключевой user‑flow:**
+- Empty проект → запуск интервью (phase `discovery`) → генерация ТЗ → подтверждение старта разработки → phase `main`.
+- Legacy проект → анализ (phase `legacy`) → интервью (phase `discovery`) → подтверждение старта разработки → phase `main`.
+
+**Мониторинг и устойчивость:**
+- Протокол запускается через `framework/tools/run-protocol.py`.
+- Наблюдатель (`framework/tools/protocol-watch.py`) следит за прогрессом, пишет алерты и останавливает протокол при длительном простое.
+- Каждые 10 секунд печатается строка статуса `[STATUS]` (настройка: `FRAMEWORK_STATUS_INTERVAL`).
+- Интервью discovery — интерактивное; для паузы используйте команду `/pause`.
 
 ---
 

@@ -13,6 +13,7 @@
 ## Rules
 - Никаких правок кода.
 - Только анализ и фиксация фактов.
+- Игнорировать служебные каталоги: `framework/`, `framework.backup.*`, `_worktrees/`, `.git`.
 
 ## Done When
 - Snapshot заполнен.

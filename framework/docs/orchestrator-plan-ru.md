@@ -147,6 +147,7 @@
   `framework/migration/legacy-migration-plan.md`, `framework/migration/legacy-migration-proposal.md`,
   `framework/migration/rollback-plan.md`.
 - Запуск: `python3 framework/orchestrator/orchestrator.py --phase legacy`.
+- Далее (обязательный шаг user‑flow): интерактивное интервью discovery (поддерживает `/pause` для паузы и последующего продолжения).
 - Изменения применяются только после approval и в отдельной ветке.
 
 ### 3.15 Legacy Apply (manual)

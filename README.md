@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-2026.01.29.7-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
@@ -147,6 +147,7 @@ Orchestrator автоматически:
 - Создаст worktrees для параллельных задач
 - Запустит AI-агентов по заданиям из `framework/tasks/`
 - Соберёт результаты и создаст review
+ - После миграции (legacy) автоматически перейдёт к интервью (discovery)
 
 ### Связь с Codex и другими AI
 
@@ -203,41 +204,56 @@ Devframework изначально создавался для работы с **
 Options:
 - Use a local zip: `./install-framework.sh --zip ./framework.zip`
 - Force update (creates a backup first): `./install-framework.sh --update`
-- Force phase: `./install-framework.sh --phase legacy` or `--phase main`
+- Force phase: `./install-framework.sh --phase discovery|main|legacy|post`
+- Run only discovery: `./install-framework.sh --phase discovery`
 - Override repo/ref:
   `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-framework.sh --run`
   (REF can be a tag, e.g. `v2026.01.24`)
 
 Auto-detection:
-- If the host root contains files other than `.git`, `framework/`, `framework.zip`, or
-  `install-framework.sh`, the launcher assumes a legacy project and runs `--phase legacy`.
+- If the host root contains only `.git`, `framework/`, `framework.zip`, or `install-framework.sh`,
+  the launcher runs `--phase discovery` (interview).
+- Otherwise it assumes legacy and runs `--phase legacy`, then автоматически запускает `--phase discovery`.
+- To skip auto-discovery after legacy: `FRAMEWORK_SKIP_DISCOVERY=1 ./install-framework.sh`.
+- To resume from last completed phase: `FRAMEWORK_RESUME=1 ./install-framework.sh`.
+- Status line: `FRAMEWORK_STATUS_INTERVAL=10` (seconds between `[STATUS]` lines).
+- Watcher poll: `FRAMEWORK_WATCH_POLL=2`.
+- Stall detection: `FRAMEWORK_STALL_TIMEOUT=900` and `FRAMEWORK_STALL_KILL=1`.
 
 ## End-to-end flows (memory cheatsheet)
 
 ### A) New project (clean host)
 1) `./install-framework.sh`
-2) Orchestrator runs `--phase main`.
-3) Dev flow completes → parallel review flow uses `framework/review/`.
-4) Optional post-run framework QA:
+2) Orchestrator runs `--phase discovery` (interactive interview → ТЗ/план/тест‑план).
+   - Pause command: type `/pause` to stop and resume later.
+3) User reviews outputs and confirms start of development.
+4) Start development:
+   `python3 framework/orchestrator/orchestrator.py --phase main`
+5) Dev flow completes → parallel review flow uses `framework/review/`.
+6) Optional post-run framework QA:
    `python3 framework/orchestrator/orchestrator.py --phase post`
-5) Auto-publish (optional): set `FRAMEWORK_REPORTING_*` env vars before step 1.
+7) Auto-publish (optional): set `FRAMEWORK_REPORTING_*` env vars before step 1.
 
 ### B) Legacy project (migration + safety)
 1) `./install-framework.sh` (auto-detects legacy, runs `--phase legacy`)
-2) Review migration artifacts:
+2) Legacy analysis completes, then auto-runs `--phase discovery` (interactive interview).
+   - Pause command: type `/pause` to stop and resume later.
+3) Review migration artifacts:
    - `framework/migration/legacy-snapshot.md`
    - `framework/migration/legacy-tech-spec.md`
    - `framework/migration/legacy-gap-report.md`
    - `framework/migration/legacy-risk-assessment.md`
    - `framework/migration/legacy-migration-plan.md`
    - `framework/migration/legacy-migration-proposal.md`
-3) Human approval gate:
+4) Human approval gate:
    - Fill `framework/migration/approval.md`
-4) Apply changes in isolated branch:
+5) Apply changes in isolated branch:
    `python3 framework/orchestrator/orchestrator.py --phase legacy --include-manual`
    (branch name includes `legacy-migration-<run_id>`)
-5) Run review/tests, then merge manually if safe.
-6) Optional framework QA (post-run) and auto-publish.
+6) Start development (after interview + approval):
+   `python3 framework/orchestrator/orchestrator.py --phase main`
+7) Run review/tests, then merge manually if safe.
+8) Optional framework QA (post-run) and auto-publish.
 
 ### C) Framework improvement loop (3rd agent)
 1) Main or legacy run finishes.
@@ -310,6 +326,10 @@ Notes:
 ## Outputs
 - `framework/logs/*.log`
 - `framework/logs/framework-run.jsonl`
+- `framework/logs/protocol-alerts.log`
+- `framework/logs/protocol-status.log`
+- `framework/logs/discovery.transcript.log`
+- `framework/logs/discovery.pause` (if interview paused)
 - `framework/docs/orchestrator-run-summary.md`
 - `framework/review/*.md`
 - `framework/framework-review/*.md`
@@ -319,6 +339,10 @@ Notes:
 - Relative paths in YAML are resolved from the config file; task paths are resolved from `project_root`.
 - The repo must be a git repository (for `git worktree`).
 - `framework/logs/framework-run.lock` exists only during an active main run; post-run tasks require it to be absent.
+- Default task worktrees are created under `_worktrees/{phase}/{task}` unless overridden in config.
+- If a worktree path already exists, the orchestrator verifies it belongs to the same git repo and aborts otherwise.
+- Progress heartbeat: `FRAMEWORK_PROGRESS_INTERVAL=10` prints `[RUNNING] ...` status; set `0` to disable.
+- Protocol watcher status: `FRAMEWORK_STATUS_INTERVAL=10` prints `[STATUS] ...`; set `0` to disable.
 
 ## Parallel review flow (two-agent)
 1) Dev agent completes tasks and prepares `framework/review/handoff.md` (and test results if any).

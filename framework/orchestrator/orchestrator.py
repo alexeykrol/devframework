@@ -9,6 +9,7 @@ import sys
 import time
 import uuid
 from pathlib import Path
+from typing import Optional
 
 try:
     import yaml  # type: ignore
@@ -47,6 +48,35 @@ def is_git_worktree(path: Path) -> bool:
     return res.returncode == 0
 
 
+def get_git_common_dir(path: Path) -> Optional[Path]:
+    res = subprocess.run(
+        ["git", "-C", str(path), "rev-parse", "--git-common-dir"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+        text=True,
+    )
+    if res.returncode != 0:
+        return None
+    value = res.stdout.strip()
+    if not value:
+        return None
+    common_dir = Path(value)
+    if not common_dir.is_absolute():
+        common_dir = (path / common_dir).resolve()
+    else:
+        common_dir = common_dir.resolve()
+    return common_dir
+
+
+def is_same_git_repo(project_root: Path, worktree_path: Path) -> bool:
+    project_common = get_git_common_dir(project_root)
+    worktree_common = get_git_common_dir(worktree_path)
+    if project_common is None or worktree_common is None:
+        return False
+    return project_common == worktree_common
+
+
 def get_git_commit(project_root: Path) -> str:
     res = subprocess.run(
         ["git", "-C", str(project_root), "rev-parse", "HEAD"],
@@ -58,6 +88,16 @@ def get_git_commit(project_root: Path) -> str:
     if res.returncode == 0:
         return res.stdout.strip()
     return "unknown"
+
+
+def branch_exists(project_root: Path, branch: str) -> bool:
+    res = subprocess.run(
+        ["git", "-C", str(project_root), "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    return res.returncode == 0
 
 
 def get_framework_version(project_root: Path) -> str:
@@ -79,6 +119,15 @@ def iso_ts(epoch: float) -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(epoch))
 
 
+def format_duration(seconds: float) -> str:
+    total = int(seconds)
+    minutes, sec = divmod(total, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours:02d}:{minutes:02d}:{sec:02d}"
+    return f"{minutes:02d}:{sec:02d}"
+
+
 def format_template(value, **kwargs):
     if value is None:
         return None
@@ -98,7 +147,22 @@ def ensure_worktree(project_root: Path, worktree_path: Path, branch: str):
             raise RuntimeError(
                 f"Worktree path exists but is not a git worktree: {worktree_path}"
             )
+        if not is_same_git_repo(project_root, worktree_path):
+            raise RuntimeError(
+                "Worktree path exists but belongs to a different git repository: "
+                f"{worktree_path}"
+            )
         return
+    if branch_exists(project_root, branch):
+        cmd = f"git worktree add {worktree_path} {branch}"
+        res = run(cmd, cwd=project_root)
+        if res.returncode != 0:
+            raise RuntimeError(
+                "Failed to create worktree from existing branch. "
+                f"Branch '{branch}' may already be checked out elsewhere."
+            )
+        return
+
     cmd = f"git worktree add -b {branch} {worktree_path}"
     res = run(cmd, cwd=project_root)
     if res.returncode != 0:
@@ -159,7 +223,7 @@ def normalize_tasks(tasks):
         if not isinstance(task["depends_on"], list):
             raise RuntimeError(f"Task '{name}': 'depends_on' must be a list")
         phase = task.get("phase", "main")
-        if phase not in ("main", "post", "legacy"):
+        if phase not in ("discovery", "main", "post", "legacy"):
             raise RuntimeError(f"Task '{name}': invalid phase '{phase}'")
         task["phase"] = phase
         manual = task.get("manual", False)
@@ -217,8 +281,18 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
     except Exception as exc:  # noqa: BLE001
         errors.append(f"logs_dir is not writable: {logs_dir} ({exc})")
 
-    # check runners binaries
-    for name, cfg in runners.items():
+    # check binaries only for runners used by selected tasks
+    required_runners = set()
+    for task in tasks:
+        if task.get("phase", "main") != phase:
+            continue
+        required_runners.add(task.get("runner", "codex"))
+
+    for name in sorted(required_runners):
+        cfg = runners.get(name)
+        if not cfg:
+            errors.append(f"Runner '{name}' not found in config")
+            continue
         cmd = cfg.get("command")
         if not cmd:
             errors.append(f"Runner '{name}' has empty command")
@@ -241,6 +315,8 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
     for task in tasks:
         if task.get("phase", "main") != phase:
             continue
+        if task.get("interactive") and not sys.stdin.isatty():
+            errors.append(f"Interactive task '{task['name']}' requires a TTY")
         runner_name = task.get("runner", "codex")
         if runner_name not in runners:
             errors.append(f"Task '{task['name']}' uses unknown runner '{runner_name}'")
@@ -276,6 +352,11 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
             errors.append(
                 f"Worktree path exists and is not a git worktree: {worktree}"
             )
+        elif worktree.exists() and not is_same_git_repo(project_root, worktree):
+            errors.append(
+                "Worktree path exists but belongs to a different git repository: "
+                f"{worktree}"
+            )
         prompt_path = resolve_path(task["prompt"], project_root)
         if not prompt_path.exists():
             errors.append(f"Prompt file not found: {prompt_path}")
@@ -310,7 +391,11 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="framework/orchestrator/orchestrator.json")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--phase", choices=["main", "post", "legacy"], default="main")
+    parser.add_argument(
+        "--phase",
+        choices=["discovery", "main", "post", "legacy"],
+        default="main",
+    )
     parser.add_argument("--include-manual", action="store_true")
     args = parser.parse_args()
 
@@ -335,6 +420,12 @@ def main():
     if not tasks:
         raise RuntimeError(f"No tasks selected for phase '{args.phase}'")
 
+    task_labels = []
+    for task in tasks:
+        suffix = " (manual)" if task.get("manual") else ""
+        task_labels.append(f"{task['name']}{suffix}")
+    print(f"[PHASE] {args.phase} | tasks: {', '.join(task_labels)}")
+
     logs_dir = resolve_path(cfg.get("logs_dir", "logs"), project_root)
     preflight(project_root, logs_dir, runners, tasks, args.phase)
     logs_dir.mkdir(parents=True, exist_ok=True)
@@ -342,13 +433,19 @@ def main():
     running = {}
     completed = {}
     blocked = {}
+    paused_tasks = set()
 
     run_id = time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8]
     run_started_at = time.time()
     framework_version = get_framework_version(project_root)
     events_path = logs_dir / "framework-run.jsonl"
     lock_path = logs_dir / "framework-run.lock"
+    status_log_path = logs_dir / "protocol-status.log"
     lock_created = False
+    progress_interval = float(os.getenv("FRAMEWORK_PROGRESS_INTERVAL", "10"))
+    if progress_interval <= 0:
+        progress_interval = None
+    last_progress_at = run_started_at
 
     if args.phase in ("post", "legacy") and lock_path.exists():
         raise RuntimeError(
@@ -374,6 +471,7 @@ def main():
             "project_root": str(project_root),
             "config": str(config_path),
             "framework_version": framework_version,
+            "tasks_total": len(tasks),
         },
     )
 
@@ -422,6 +520,7 @@ def main():
                 if not prompt_path.exists():
                     raise RuntimeError(f"Prompt file not found: {prompt_path}")
                 command = build_command(runners, task, prompt_path)
+                interactive = bool(task.get("interactive"))
                 log_value = task.get("log")
                 if log_value:
                     log_value = format_template(
@@ -433,6 +532,18 @@ def main():
                     log_path = resolve_path(log_value, project_root)
                 else:
                     log_path = logs_dir / f"{task['name']}.log"
+                pause_marker = None
+                if interactive:
+                    pause_value = task.get("pause_marker", f"framework/logs/{task['name']}.pause")
+                    pause_value = format_template(
+                        pause_value,
+                        run_id=run_id,
+                        phase=args.phase,
+                        task=task["name"],
+                    )
+                    pause_marker = resolve_path(pause_value, project_root)
+                    if pause_marker.exists():
+                        pause_marker.unlink()
 
                 write_event(
                     events_path,
@@ -445,34 +556,62 @@ def main():
                         "branch": branch,
                         "worktree": str(worktree),
                         "log": str(log_path),
+                        "interactive": interactive,
+                        "pause_marker": str(pause_marker) if pause_marker else None,
                     },
                 )
 
                 if not args.dry_run:
                     ensure_worktree(project_root, worktree, branch)
                     log_path.parent.mkdir(parents=True, exist_ok=True)
-                    log_f = open(log_path, "w", encoding="utf-8")
-                    print(f"[START] {task['name']} -> {log_path}")
-                    proc = subprocess.Popen(
-                        command,
-                        cwd=worktree,
-                        shell=True,
-                        stdout=log_f,
-                        stderr=subprocess.STDOUT,
-                    )
-                    running[task["name"]] = (proc, log_f, log_path)
+                    if interactive:
+                        print(f"[START] {task['name']} (interactive) -> {log_path}")
+                        runner = framework_root / "tools" / "interactive-runner.py"
+                        cmd = [
+                            sys.executable,
+                            str(runner),
+                            "--transcript",
+                            str(log_path),
+                            "--prompt-file",
+                            str(prompt_path),
+                        ]
+                        if pause_marker:
+                            cmd += ["--pause-marker", str(pause_marker)]
+                        cmd += ["--", command]
+                        proc = subprocess.Popen(cmd, cwd=worktree)
+                        running[task["name"]] = (proc, None, log_path, interactive, pause_marker)
+                    else:
+                        log_f = open(log_path, "w", encoding="utf-8")
+                        print(f"[START] {task['name']} -> {log_path}")
+                        proc = subprocess.Popen(
+                            command,
+                            cwd=worktree,
+                            shell=True,
+                            stdout=log_f,
+                            stderr=subprocess.STDOUT,
+                        )
+                        running[task["name"]] = (proc, log_f, log_path, interactive, pause_marker)
                 else:
                     print(f"[DRY-RUN] {task['name']} in {worktree} :: {command}")
                     completed[task["name"]] = 0
                 progress = True
+                last_progress_at = time.time()
 
             to_remove = []
-            for name, (proc, log_f, log_path) in running.items():
+            for name, (proc, log_f, log_path, interactive, pause_marker) in running.items():
                 ret = proc.poll()
                 if ret is not None:
-                    log_f.close()
-                    completed[name] = ret
-                    print(f"[DONE] {name} exit={ret}")
+                    if log_f:
+                        log_f.close()
+                    paused = False
+                    if interactive and pause_marker and pause_marker.exists():
+                        paused = True
+                        paused_tasks.add(name)
+                        completed[name] = 2
+                    else:
+                        completed[name] = ret
+                    exit_code = 2 if paused else ret
+                    print(f"[DONE] {name} exit={exit_code}")
                     write_event(
                         events_path,
                         {
@@ -480,11 +619,13 @@ def main():
                             "run_id": run_id,
                             "task": name,
                             "timestamp": iso_ts(time.time()),
-                            "exit_code": ret,
+                            "exit_code": exit_code,
+                            "paused": paused,
                         },
                     )
                     to_remove.append(name)
                     progress = True
+                    last_progress_at = time.time()
 
             for name in to_remove:
                 running.pop(name, None)
@@ -499,6 +640,19 @@ def main():
                     "No runnable tasks remaining. Check for cyclic dependencies: "
                     + ", ".join(pending)
                 )
+
+            now = time.time()
+            if running and progress_interval and now - last_progress_at >= progress_interval:
+                names = ", ".join(sorted(running.keys()))
+                elapsed = format_duration(now - run_started_at)
+                line = f"[RUNNING] {names} (elapsed {elapsed})"
+                if any(item[3] for item in running.values()):
+                    status_log_path.parent.mkdir(parents=True, exist_ok=True)
+                    with status_log_path.open("a", encoding="utf-8") as f:
+                        f.write(f"{iso_ts(time.time())} {line}\n")
+                else:
+                    print(line)
+                last_progress_at = now
 
             time.sleep(1)
     except Exception as exc:
@@ -531,7 +685,10 @@ def main():
                 name = task["name"]
                 if name in completed:
                     code = completed[name]
-                    status = "OK" if code == 0 else f"FAIL ({code})"
+                    if name in paused_tasks:
+                        status = "PAUSED"
+                    else:
+                        status = "OK" if code == 0 else f"FAIL ({code})"
                 else:
                     deps = blocked.get(name, [])
                     status = f"BLOCKED (deps: {', '.join(deps)})"
@@ -550,11 +707,25 @@ def main():
             "duration_sec": round(run_finished_at - run_started_at, 2),
             "completed": completed,
             "blocked": blocked,
+            "paused": sorted(paused_tasks),
             "error": run_error,
         },
     )
 
     print(f"Summary saved to {summary_run}")
+    if args.phase == "legacy":
+        print("Next: start the discovery interview:")
+        print("  python3 framework/orchestrator/orchestrator.py --phase discovery")
+    elif args.phase == "discovery":
+        if paused_tasks:
+            print("Discovery paused. Re-run to continue:")
+            print("  ./install-framework.sh")
+        elif failed_run:
+            print("Discovery failed. Check logs and summary for details:")
+            print(f"  {summary_run}")
+        else:
+            print("Discovery complete. Review the generated spec, then confirm start of development:")
+            print("  python3 framework/orchestrator/orchestrator.py --phase main")
     publish_error = None
     try:
         if not args.dry_run:
@@ -577,8 +748,12 @@ def main():
             },
         )
     exit_code = 0
-    if any(code != 0 for code in completed.values()) or blocked or run_error:
+    non_pause_failures = any(code not in (0, 2) for code in completed.values())
+    failed_run = bool(blocked or run_error or non_pause_failures)
+    if failed_run:
         exit_code = 1
+    elif paused_tasks:
+        exit_code = 2
     sys.exit(exit_code)
 
 
@@ -602,7 +777,7 @@ def maybe_publish_report(cfg, phase, run_id, framework_root: Path, framework_ver
 
     phases = parse_phases(
         os.getenv("FRAMEWORK_REPORTING_PHASES"),
-        reporting.get("phases", ["legacy", "post", "main"]),
+        reporting.get("phases", ["legacy", "discovery", "post", "main"]),
     )
     if phase not in phases:
         return None
