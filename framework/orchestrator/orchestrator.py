@@ -533,6 +533,7 @@ def main():
                 else:
                     log_path = logs_dir / f"{task['name']}.log"
                 pause_marker = None
+                resume_interactive = False
                 if interactive:
                     pause_value = task.get("pause_marker", f"framework/logs/{task['name']}.pause")
                     pause_value = format_template(
@@ -543,6 +544,7 @@ def main():
                     )
                     pause_marker = resolve_path(pause_value, project_root)
                     if pause_marker.exists():
+                        resume_interactive = True
                         pause_marker.unlink()
 
                 write_event(
@@ -558,6 +560,7 @@ def main():
                         "log": str(log_path),
                         "interactive": interactive,
                         "pause_marker": str(pause_marker) if pause_marker else None,
+                        "resume": resume_interactive,
                     },
                 )
 
@@ -566,6 +569,7 @@ def main():
                     log_path.parent.mkdir(parents=True, exist_ok=True)
                     if interactive:
                         print(f"[START] {task['name']} (interactive) -> {log_path}")
+                        print("[INTERACTIVE] Discovery started. Waiting for agent output...")
                         runner = framework_root / "tools" / "interactive-runner.py"
                         cmd = [
                             sys.executable,
@@ -577,6 +581,8 @@ def main():
                         ]
                         if pause_marker:
                             cmd += ["--pause-marker", str(pause_marker)]
+                        if resume_interactive:
+                            cmd.append("--append")
                         cmd += ["--", command]
                         proc = subprocess.Popen(cmd, cwd=worktree)
                         running[task["name"]] = (proc, None, log_path, interactive, pause_marker)

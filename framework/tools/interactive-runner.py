@@ -19,9 +19,10 @@ def run_interactive(
     pause_marker: Path | None,
     pause_cmd: str,
     prompt_file: Path | None,
+    append: bool,
 ) -> int:
     transcript.parent.mkdir(parents=True, exist_ok=True)
-    log_f = transcript.open("ab")
+    log_f = transcript.open("ab" if append else "wb")
 
     master_fd, slave_fd = os.openpty()
     if len(command) == 1:
@@ -138,6 +139,7 @@ def main() -> int:
     parser.add_argument("--pause-marker")
     parser.add_argument("--pause-command", default="/pause")
     parser.add_argument("--prompt-file")
+    parser.add_argument("--append", action="store_true")
     parser.add_argument("command", nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
@@ -150,7 +152,14 @@ def main() -> int:
     transcript = Path(args.transcript).resolve()
     pause_marker = Path(args.pause_marker).resolve() if args.pause_marker else None
     prompt_file = Path(args.prompt_file).resolve() if args.prompt_file else None
-    return run_interactive(cmd, transcript, pause_marker, args.pause_command, prompt_file)
+    return run_interactive(
+        cmd,
+        transcript,
+        pause_marker,
+        args.pause_command,
+        prompt_file,
+        args.append,
+    )
 
 
 if __name__ == "__main__":

@@ -54,6 +54,21 @@ def main() -> None:
     status_path = logs_dir / "protocol-status.log"
 
     last_pos = 0
+    if events_path.exists():
+        last_run_start = 0
+        with events_path.open("rb") as f:
+            while True:
+                pos = f.tell()
+                line = f.readline()
+                if not line:
+                    break
+                try:
+                    payload = json.loads(line.decode("utf-8", errors="ignore").strip())
+                except json.JSONDecodeError:
+                    continue
+                if payload.get("event") == "run_start":
+                    last_run_start = pos
+        last_pos = last_run_start
     active_task = None
     active_log = None
     last_log_mtime = None
@@ -107,7 +122,10 @@ def main() -> None:
                         code = payload.get("exit_code")
                         print(f"[TASK] done {name} exit={code}")
                         if name:
-                            status[name] = "OK" if code == 0 else f"FAIL({code})"
+                            if payload.get("paused") or code == 2:
+                                status[name] = "PAUSED"
+                            else:
+                                status[name] = "OK" if code == 0 else f"FAIL({code})"
                         if name == active_task:
                             active_task = None
                             active_log = None
