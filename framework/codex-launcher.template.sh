@@ -3,4 +3,5 @@
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export CODEX_HOME="${CODEX_HOME:-$SCRIPT_DIR/framework/.codex}"
+mkdir -p "$CODEX_HOME"
 exec codex "$@"
