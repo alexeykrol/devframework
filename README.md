@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.29.18-blue)
+![Version](https://img.shields.io/badge/version-2026.01.29.19-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
@@ -185,7 +185,7 @@ Devframework изначально создавался для работы с **
 2) Run (self-contained installer; installs into `./framework` and writes `AGENTS.md`):
    `./install-framework.sh`
 3) Start Codex in the project root and say **"start"** to begin the protocol:
-   `CODEX_HOME=framework/.codex codex`
+   `./codex`
 
 Tip: release assets also include a versioned installer name, e.g.
 `install-fr-<version>.sh` (same contents as `install-framework.sh`).
@@ -229,7 +229,7 @@ Auto-detection (when running the orchestrator manually):
 
 ### A) New project (clean host)
 1) `./install-framework.sh`
-2) Run `CODEX_HOME=framework/.codex codex` and say **"start"** to begin discovery.
+2) Run `./codex` and say **"start"** to begin discovery.
 3) Discovery interview → ТЗ/план/тест‑план.
    - Pause command: type `/pause` to stop and resume later.
 4) User reviews outputs and confirms start of development.
@@ -242,7 +242,7 @@ Auto-detection (when running the orchestrator manually):
 
 ### B) Legacy project (migration + safety)
 1) `./install-framework.sh`
-2) Run `CODEX_HOME=framework/.codex codex` and say **"start"**:
+2) Run `./codex` and say **"start"**:
    - Legacy analysis runs first (read-only).
    - Затем discovery интервью в Codex.
    - Pause command: type `/pause` to stop and resume later.
