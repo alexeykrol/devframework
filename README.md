@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.29.16-blue)
+![Version](https://img.shields.io/badge/version-2026.01.29.17-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
@@ -186,6 +186,9 @@ Devframework изначально создавался для работы с **
    `./install-framework.sh`
 3) Start Codex in the project root and say **"start"** to begin the protocol:
    `CODEX_HOME=framework/.codex codex`
+
+Tip: release assets also include a versioned installer name, e.g.
+`install-fr-<version>-<timestamp>.sh` (same contents as `install-framework.sh`).
 
 ### Host prerequisites (before running the launcher)
 - Git repo initialized in the host project (remote is optional):

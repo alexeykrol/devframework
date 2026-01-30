@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import base64
+import shutil
 import subprocess
 import time
 import zipfile
@@ -82,6 +83,10 @@ def main() -> None:
                 new_lines = content_lines[:start_idx + 1] + chunked + content_lines[end_idx:]
                 INSTALLER_PATH.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
                 print(f"Installer updated with embedded zip: {INSTALLER_PATH}")
+                timestamp = time.strftime("%Y%m%d%H%M%S")
+                versioned = ROOT / f"install-fr-{version}-{timestamp}.sh"
+                shutil.copy2(INSTALLER_PATH, versioned)
+                print(f"Versioned installer: {versioned}")
 
 
 if __name__ == "__main__":
