@@ -25,6 +25,7 @@
      `FRAMEWORK_AGENT_FLOW=1 FRAMEWORK_SKIP_DISCOVERY=1 python3 framework/tools/run-protocol.py`
 3) Запусти discovery интервью:
    - прочитай `framework/tasks/discovery.md` и следуй инструкциям;
+   - задавай строго один вопрос за раз (без списков и батчей вопросов);
    - веди протокол `framework/docs/discovery/interview.md`;
    - веди транскрипт в `framework/logs/discovery.transcript.log` (append, с тайм‑метками).
 4) После интервью сгенерируй артефакты:
