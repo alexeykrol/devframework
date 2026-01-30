@@ -414,6 +414,9 @@ def main():
     if not is_git_repo(project_root):
         raise RuntimeError(f"project_root is not a git repository: {project_root}")
 
+    # Keep Codex session data inside the project unless explicitly overridden.
+    os.environ.setdefault("CODEX_HOME", str(resolve_path("framework/.codex", project_root)))
+
     runners = cfg.get("runners", {})
     if bool_from_env(os.getenv("FRAMEWORK_RUNNER_NOOP")):
         for name in list(runners.keys()):
