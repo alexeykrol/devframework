@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FRAMEWORK_DIR = ROOT / "framework"
 VERSION_FILE = FRAMEWORK_DIR / "VERSION"
 DEFAULT_OUT = ROOT / "framework.zip"
-INSTALLER_PATH = ROOT / "install-framework.sh"
+INSTALLER_PATH = ROOT / "install-fr.sh"
 EXCLUDE_DIRS = {"logs", "outbox", "__pycache__"}
 EXCLUDE_NAMES = {".DS_Store"}
 EMBED_BEGIN = "__FRAMEWORK_ZIP_PAYLOAD_BEGIN__"
@@ -86,9 +86,6 @@ def main() -> None:
                 versioned = ROOT / f"install-fr-{version}.sh"
                 shutil.copy2(INSTALLER_PATH, versioned)
                 print(f"Versioned installer: {versioned}")
-                alias_path = ROOT / "install-fr.sh"
-                shutil.copy2(INSTALLER_PATH, alias_path)
-                print(f"Latest installer alias: {alias_path}")
 
 
 if __name__ == "__main__":
