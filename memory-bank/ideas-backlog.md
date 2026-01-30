@@ -116,6 +116,14 @@ Core mechanisms for the Execution Engine.
 5. **Input**: Current user goal.
 **Value:** Reduces hallucinations by giving the model a clear "mental model" of its environment.
 
+## Advanced Concepts (Graphiti Analysis)
+
+### 18. Knowledge Graph Memory (Graphiti)
+**Concept:** Using a Temporal Knowledge Graph instead of a simple Vector DB for long-term memory.
+**Why:** Code is a graph (dependencies, calls, inheritance), not just text. Graphs capture structure better than embeddings.
+**Value:** Critical for "Legacy Migration" scenarios — agents can query dependencies ("What breaks if I change this?") rather than guessing based on similarity.
+**Status:** Accepted Advanced Concept.
+
 ## Implementation Ideas
 - **Spec Compiler Tool**: A script to convert Discovery MD files into Master Spec JSON.
 - **Gatekeeper Module**: A validator that blocks development until the Master Spec is 100% complete and valid.
