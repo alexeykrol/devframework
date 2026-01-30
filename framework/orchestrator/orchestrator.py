@@ -392,6 +392,19 @@ def preflight(project_root: Path, logs_dir: Path, runners: dict, tasks: list, ph
         raise RuntimeError("Preflight failed:\n- " + "\n- ".join(errors))
 
 
+def choose_codex_home(project_root: Path) -> str:
+    if os.getenv("CODEX_HOME"):
+        return os.environ["CODEX_HOME"]
+    global_home = Path.home() / ".codex"
+    try:
+        global_home.mkdir(parents=True, exist_ok=True)
+        if os.access(global_home, os.W_OK):
+            return str(global_home)
+    except Exception:
+        pass
+    return str(resolve_path("framework/.codex", project_root))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="framework/orchestrator/orchestrator.json")
@@ -414,8 +427,9 @@ def main():
     if not is_git_repo(project_root):
         raise RuntimeError(f"project_root is not a git repository: {project_root}")
 
-    # Keep Codex session data inside the project unless explicitly overridden.
-    os.environ.setdefault("CODEX_HOME", str(resolve_path("framework/.codex", project_root)))
+    # Prefer global Codex home to avoid repeated logins; fallback to project.
+    if "CODEX_HOME" not in os.environ:
+        os.environ["CODEX_HOME"] = choose_codex_home(project_root)
 
     runners = cfg.get("runners", {})
     if bool_from_env(os.getenv("FRAMEWORK_RUNNER_NOOP")):

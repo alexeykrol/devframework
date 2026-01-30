@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.30.3-blue)
+![Version](https://img.shields.io/badge/version-2026.01.30.4-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
@@ -204,6 +204,7 @@ Tip: release assets include both:
   ```
 - Network access to GitHub to check and download the latest release.
 - (Optional) `curl` installed; if missing, Python will download the zip instead.
+- Codex stores auth in `~/.codex` when writable; otherwise it falls back to `framework/.codex`.
 - If `./framework` already exists, the launcher auto-updates when the latest release differs.
   Use `--update` to force a refresh or when using a local zip.
 
