@@ -10,4 +10,4 @@
 2) Удалить созданные worktree/ветки: `rm -rf _worktrees && git worktree prune && git branch -D task/* legacy-migration-* || true`.
 
 ## Восстановление состояния
-- Повторно собрать проверенный `framework.zip` из стабильной версии (`scripts/package-framework.py`), перезапустить `./install-framework.sh --zip ./framework.zip --update --phase legacy --dry-run` для валидации.
+- Повторно собрать проверенный `framework.zip` из стабильной версии (`scripts/package-framework.py`), перезапустить `./install-fr.sh --zip ./framework.zip --update --phase legacy --dry-run` для валидации.

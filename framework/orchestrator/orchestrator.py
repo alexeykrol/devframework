@@ -779,7 +779,7 @@ def main():
     elif args.phase == "discovery":
         if paused_tasks:
             print("Discovery paused. Re-run to continue:")
-            print("  ./install-framework.sh")
+            print("  ./install-fr.sh")
         elif failed_run:
             print("Discovery failed. Check logs and summary for details:")
             print(f"  {summary_run}")

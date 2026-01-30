@@ -173,7 +173,7 @@ def build_test_plan() -> str:
 ## 3) Типы тестов
 - Unit: разбор конфигурации, worktree path validation, lock handling, redact-функции, YAML/JSON I/O.
 - Integration: no‑op прогон main; export-report на синтетических логах; publish-report dry-run.
-- E2E: установка через `install-framework.sh` в пустой репо; запуск main→post в no‑op; запуск legacy анализа (read-only).
+- E2E: установка через `install-fr.sh` в пустой репо; запуск main→post в no‑op; запуск legacy анализа (read-only).
 - Manual/UX: проверка понятности сгенерированных артефактов для не‑тех пользователя.
 
 ## 4) Критические сценарии

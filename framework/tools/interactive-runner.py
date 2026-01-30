@@ -131,7 +131,7 @@ def run_interactive(
                         pause_deadline = time.time() + 20
                         message = (
                             f"\n[PAUSE] Session paused at {iso_ts()}. "
-                            "Re-run ./install-framework.sh to resume.\n"
+                            "Re-run ./install-fr.sh to resume.\n"
                         )
                         os.write(stdout_fd, message.encode("utf-8"))
                         log_f.write(message.encode("utf-8"))

@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.30.1-blue)
+![Version](https://img.shields.io/badge/version-2026.01.30.2-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
@@ -96,7 +96,7 @@ devframework/
 │   ├── 06-gpt52-pro-claude-pipeline.md   # GPT-5.2 Pro как архитектор + Claude как исполнитель
 │   ├── 07-ai-team-architecture.md        # Революционная идея: AI-команда с Team Lead
 │   └── COMPARISON.md             # Сравнение 5 уровней автономности (60%-100%)
-├── install-framework.sh          # Установщик для новых проектов
+├── install-fr.sh               # Установщик для новых проектов
 └── README.md                     # Этот файл
 ```
 
@@ -140,7 +140,7 @@ git commit -m "init"
 
 **3. Запустите установщик:**
 ```bash
-./install-framework.sh
+./install-fr.sh
 ```
 
 Orchestrator автоматически:
@@ -171,7 +171,7 @@ Devframework изначально создавался для работы с **
 - framework/migration/ - legacy migration analysis and safety artifacts
 - framework/VERSION - framework release identifier
 - framework.zip - portable bundle for host projects
-- install-framework.sh - installer for framework.zip
+- install-fr.sh - installer for framework.zip
 - scripts/package-framework.py - build helper for framework.zip
 
 ## Quick start
@@ -181,14 +181,15 @@ Devframework изначально создавался для работы с **
    `python3 framework/orchestrator/orchestrator.py --config framework/orchestrator/orchestrator.json`
 
 ## Install in a host project (launcher)
-1) Copy `install-framework.sh` into the host project root.
+1) Copy `install-fr.sh` (or `install-fr-<version>.sh`) into the host project root.
 2) Run (self-contained installer; installs into `./framework` and writes `AGENTS.md`):
-   `./install-framework.sh`
+   `./install-fr.sh`
 3) Start Codex in the project root and say **"start"** to begin the protocol:
    `./codex`
 
-Tip: release assets also include a versioned installer name, e.g.
-`install-fr-<version>.sh` (same contents as `install-framework.sh`).
+Tip: release assets include both:
+- `install-fr.sh` (latest)
+- `install-fr-<version>.sh` (pinned version)
 
 ### Host prerequisites (before running the launcher)
 - Git repo initialized in the host project (remote is optional):
@@ -207,15 +208,15 @@ Tip: release assets also include a versioned installer name, e.g.
   Use `--update` to force a refresh or when using a local zip.
 
 Options:
-- Use a local zip: `./install-framework.sh --zip ./framework.zip`
-- Force update (creates a backup first): `./install-framework.sh --update`
-- Run orchestrator immediately (legacy/main/post): `./install-framework.sh --run --phase legacy|main|post`
+- Use a local zip: `./install-fr.sh --zip ./framework.zip`
+- Force update (creates a backup first): `./install-fr.sh --update`
+- Run orchestrator immediately (legacy/main/post): `./install-fr.sh --run --phase legacy|main|post`
 - Override repo/ref:
-  `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-framework.sh`
+  `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-fr.sh`
   (REF can be a tag, e.g. `v2026.01.24`)
 
 Auto-detection (when running the orchestrator manually):
-- If the host root contains only `.git`, `framework/`, `framework.zip`, or `install-framework.sh`,
+- If the host root contains only `.git`, `framework/`, `framework.zip`, `install-fr.sh`, or `install-fr-<version>.sh`,
   `run-protocol.py` chooses discovery.
 - Otherwise it assumes legacy.
 - To skip auto-discovery after legacy: `FRAMEWORK_SKIP_DISCOVERY=1`.
@@ -228,7 +229,7 @@ Auto-detection (when running the orchestrator manually):
 ## End-to-end flows (memory cheatsheet)
 
 ### A) New project (clean host)
-1) `./install-framework.sh`
+1) `./install-fr.sh`
 2) Run `./codex` and say **"start"** to begin discovery.
 3) Discovery interview → ТЗ/план/тест‑план.
    - Pause command: type `/pause` to stop and resume later.
@@ -241,7 +242,7 @@ Auto-detection (when running the orchestrator manually):
 8) Auto-publish (optional): set `FRAMEWORK_REPORTING_*` env vars before step 1.
 
 ### B) Legacy project (migration + safety)
-1) `./install-framework.sh`
+1) `./install-fr.sh`
 2) Run `./codex` and say **"start"**:
    - Legacy analysis runs first (read-only).
    - Затем discovery интервью в Codex.
@@ -287,17 +288,17 @@ Auto-detection (when running the orchestrator manually):
    - (optional) `FRAMEWORK_REPORTING_INCLUDE_REVIEW=1`
    - (optional) `FRAMEWORK_REPORTING_INCLUDE_TASK_LOGS=1`
    - `GITHUB_TOKEN=...`
-2) `./install-framework.sh`
+2) `./install-fr.sh`
 3) PR/issue will be created automatically in `devframework`.
 
 ## Minimal quick start (one‑liners)
 New project:
 ```
-FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh
+FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-fr.sh
 ```
 Legacy project:
 ```
-FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-framework.sh --phase legacy
+FRAMEWORK_REPORTING_ENABLED=1 FRAMEWORK_REPORTING_REPO=alexeykrol/devframework FRAMEWORK_REPORTING_MODE=pr FRAMEWORK_REPORTING_HOST_ID=$(basename "$PWD") GITHUB_TOKEN=... ./install-fr.sh --phase legacy
 ```
 
 ## Build release zip (maintainers)

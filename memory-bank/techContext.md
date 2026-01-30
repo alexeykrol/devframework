@@ -3,7 +3,7 @@
 ## Core Technologies
 - **Python 3**: The primary language for the Orchestrator and helper scripts.
 - **Git**: Heavily used for `worktree` management, branching, and merging.
-- **Shell (Bash)**: Used for installation (`install-framework.sh`) and environment setup.
+- **Shell (Bash)**: Used for installation (`install-fr.sh`) and environment setup.
 
 ## AI Tools Supported
 - **Claude Code (Anthropic)**: Primary agent for complex tasks. Needs specific "autonomy protocols" (see `claude-code/`).

@@ -86,6 +86,9 @@ def main() -> None:
                 versioned = ROOT / f"install-fr-{version}.sh"
                 shutil.copy2(INSTALLER_PATH, versioned)
                 print(f"Versioned installer: {versioned}")
+                alias_path = ROOT / "install-fr.sh"
+                shutil.copy2(INSTALLER_PATH, alias_path)
+                print(f"Latest installer alias: {alias_path}")
 
 
 if __name__ == "__main__":

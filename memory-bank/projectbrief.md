@@ -20,4 +20,4 @@ Devframework is a local scaffold for orchestrating parallel tasks using AI agent
 - Reduction in development time for standard feature sets.
 - Zero git conflicts between parallel agents.
 - Comprehensive artifacts (logs, handoffs, reviews) generated for every run.
-- Seamless integration with existing projects via `install-framework.sh`.
+- Seamless integration with existing projects via `install-fr.sh`.

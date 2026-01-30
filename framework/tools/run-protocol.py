@@ -88,7 +88,7 @@ def determine_mode(default_phase: str | None) -> list[str]:
     ignore = {
         "framework",
         "framework.zip",
-        "install-framework.sh",
+        "install-fr.sh",
         "AGENTS.md",
         "AGENTS.override.md",
         ".git",
@@ -97,6 +97,8 @@ def determine_mode(default_phase: str | None) -> list[str]:
     }
     for entry in root.iterdir():
         if entry.name in ignore:
+            continue
+        if entry.name.startswith("install-fr-") and entry.name.endswith(".sh"):
             continue
         phases = ["legacy", "discovery"]
         if truthy(os.getenv("FRAMEWORK_SKIP_DISCOVERY")):
@@ -125,7 +127,7 @@ def main() -> int:
         print(f"[PHASE] starting {phase}")
         code = run_phase(config, phase, logs_dir)
         if code == 2 and phase == "discovery":
-            print("[PAUSED] discovery interview paused. Re-run ./install-framework.sh to continue.")
+            print("[PAUSED] discovery interview paused. Re-run ./install-fr.sh to continue.")
             return 0
         if code != 0:
             print(f"[ALERT] phase '{phase}' failed (exit={code})")

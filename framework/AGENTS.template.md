@@ -20,7 +20,7 @@
    - после возобновления удали pause‑маркер.
 2) Определи, есть ли legacy‑код в корне проекта:
    - считать legacy, если есть файлы/папки кроме: `framework/`, `framework.zip`,
-     `install-framework.sh`, `.git/`, `.gitignore`, `AGENTS.md`, `.DS_Store`.
+     `install-fr.sh`, `install-fr-<version>.sh`, `.git/`, `.gitignore`, `AGENTS.md`, `.DS_Store`.
    - если legacy найден, запусти анализ:
      `FRAMEWORK_AGENT_FLOW=1 FRAMEWORK_SKIP_DISCOVERY=1 python3 framework/tools/run-protocol.py`
 3) Запусти discovery интервью:
