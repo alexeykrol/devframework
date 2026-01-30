@@ -28,6 +28,11 @@ def resolve_path(value, base: Path) -> Path:
     return path.resolve()
 
 
+def write_pause_marker(path: Path, reason: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f"paused_at: {iso_ts(time.time())}\nreason: {reason}\n", encoding="utf-8")
+
+
 def is_git_repo(path: Path) -> bool:
     res = subprocess.run(
         ["git", "-C", str(path), "rev-parse", "--git-dir"],
@@ -569,20 +574,6 @@ def main():
                     log_path.parent.mkdir(parents=True, exist_ok=True)
                     if interactive:
                         print(f"[START] {task['name']} (interactive) -> {log_path}")
-                        print("[INTERACTIVE] Discovery started. Waiting for agent output...")
-                        runner = framework_root / "tools" / "interactive-runner.py"
-                        cmd = [
-                            sys.executable,
-                            str(runner),
-                            "--transcript",
-                            str(log_path),
-                            "--prompt-file",
-                            str(prompt_path),
-                        ]
-                        if pause_marker:
-                            cmd += ["--pause-marker", str(pause_marker)]
-                        if resume_interactive:
-                            cmd.append("--append")
                         cmd_name = ""
                         if isinstance(command, str):
                             parts = shlex.split(command)
@@ -590,10 +581,50 @@ def main():
                                 cmd_name = parts[0]
                         elif command:
                             cmd_name = command[0]
-                        if cmd_name == "codex":
-                            cmd += ["--prompt-mode", "arg"]
-                        cmd += ["--", command]
-                        proc = subprocess.Popen(cmd, cwd=worktree)
+                        interactive_pref = os.environ.get("FRAMEWORK_INTERACTIVE", "").strip().lower()
+                        script_path = shutil.which("script")
+                        use_attach = (
+                            cmd_name == "codex"
+                            and sys.stdin.isatty()
+                            and interactive_pref != "pty"
+                            and script_path is not None
+                        )
+                        if use_attach:
+                            print(
+                                "[INTERACTIVE] Discovery started. Interactive session attached to this terminal."
+                            )
+                            if resume_interactive:
+                                attach_cmd = ["codex", "resume", "--last"]
+                            else:
+                                prompt_text = prompt_path.read_text(
+                                    encoding="utf-8", errors="ignore"
+                                ).rstrip()
+                                attach_cmd = ["codex", prompt_text]
+                            cmd = [script_path, "-q"]
+                            if resume_interactive:
+                                cmd.append("-a")
+                            cmd.append(str(log_path))
+                            cmd += attach_cmd
+                            proc = subprocess.Popen(cmd, cwd=worktree)
+                        else:
+                            print("[INTERACTIVE] Discovery started. Waiting for agent output...")
+                            runner = framework_root / "tools" / "interactive-runner.py"
+                            cmd = [
+                                sys.executable,
+                                str(runner),
+                                "--transcript",
+                                str(log_path),
+                                "--prompt-file",
+                                str(prompt_path),
+                            ]
+                            if pause_marker:
+                                cmd += ["--pause-marker", str(pause_marker)]
+                            if resume_interactive:
+                                cmd.append("--append")
+                            if cmd_name == "codex":
+                                cmd += ["--prompt-mode", "arg"]
+                            cmd += ["--", command]
+                            proc = subprocess.Popen(cmd, cwd=worktree)
                         running[task["name"]] = (proc, None, log_path, interactive, pause_marker)
                     else:
                         log_f = open(log_path, "w", encoding="utf-8")
@@ -621,6 +652,10 @@ def main():
                     paused = False
                     if interactive and pause_marker and pause_marker.exists():
                         paused = True
+                    elif interactive and pause_marker and ret == 130:
+                        write_pause_marker(pause_marker, "SIGINT")
+                        paused = True
+                    if paused:
                         paused_tasks.add(name)
                         completed[name] = 2
                     else:
