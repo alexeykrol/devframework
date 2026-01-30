@@ -727,6 +727,9 @@ def main():
         },
     )
 
+    non_pause_failures = any(code not in (0, 2) for code in completed.values())
+    failed_run = bool(blocked or run_error or non_pause_failures)
+
     print(f"Summary saved to {summary_run}")
     if args.phase == "legacy":
         print("Next: start the discovery interview:")
@@ -763,8 +766,6 @@ def main():
             },
         )
     exit_code = 0
-    non_pause_failures = any(code not in (0, 2) for code in completed.values())
-    failed_run = bool(blocked or run_error or non_pause_failures)
     if failed_run:
         exit_code = 1
     elif paused_tasks:

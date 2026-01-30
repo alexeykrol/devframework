@@ -34,6 +34,7 @@ def run_interactive(
     else:
         cmd = command
 
+    stdin_state = None
     prompt_payload = None
     if prompt_file:
         try:
@@ -68,6 +69,17 @@ def run_interactive(
     buffer = b""
     pause_requested = False
     pause_deadline = None
+
+    if stdin_is_tty:
+        try:
+            stdin_state = termios.tcgetattr(stdin_fd)
+            raw_state = termios.tcgetattr(stdin_fd)
+            raw_state[3] &= ~(termios.ECHO | termios.ICANON)
+            raw_state[6][termios.VMIN] = 1
+            raw_state[6][termios.VTIME] = 0
+            termios.tcsetattr(stdin_fd, termios.TCSANOW, raw_state)
+        except Exception:
+            stdin_state = None
 
     def send_prompt() -> None:
         if not prompt_payload:
@@ -138,6 +150,11 @@ def run_interactive(
                         pass
                 return 2
     finally:
+        if stdin_state is not None:
+            try:
+                termios.tcsetattr(stdin_fd, termios.TCSADRAIN, stdin_state)
+            except Exception:
+                pass
         try:
             os.close(master_fd)
         except Exception:

@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.29.12-blue)
+![Version](https://img.shields.io/badge/version-2026.01.29.13-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
