@@ -1,5 +1,5 @@
 # Devframework
-![Version](https://img.shields.io/badge/version-2026.01.29.14-blue)
+![Version](https://img.shields.io/badge/version-2026.01.29.15-blue)
 Local scaffold for orchestrating parallel tasks with git worktrees.
 
 ## Что это такое и для чего
@@ -182,8 +182,9 @@ Devframework изначально создавался для работы с **
 
 ## Install in a host project (launcher)
 1) Copy `install-framework.sh` into the host project root.
-2) Run (self-contained installer; installs into `./framework` and runs orchestrator):
+2) Run (self-contained installer; installs into `./framework` and writes `AGENTS.md`):
    `./install-framework.sh`
+3) Start Codex in the project root and say **"start"** to begin the protocol.
 
 ### Host prerequisites (before running the launcher)
 - Git repo initialized in the host project (remote is optional):
@@ -204,18 +205,17 @@ Devframework изначально создавался для работы с **
 Options:
 - Use a local zip: `./install-framework.sh --zip ./framework.zip`
 - Force update (creates a backup first): `./install-framework.sh --update`
-- Force phase: `./install-framework.sh --phase discovery|main|legacy|post`
-- Run only discovery: `./install-framework.sh --phase discovery`
+- Run orchestrator immediately (legacy/main/post): `./install-framework.sh --run --phase legacy|main|post`
 - Override repo/ref:
-  `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-framework.sh --run`
+  `FRAMEWORK_REPO=alexeykrol/devframework FRAMEWORK_REF=main ./install-framework.sh`
   (REF can be a tag, e.g. `v2026.01.24`)
 
-Auto-detection:
+Auto-detection (when running the orchestrator manually):
 - If the host root contains only `.git`, `framework/`, `framework.zip`, or `install-framework.sh`,
-  the launcher runs `--phase discovery` (interview).
-- Otherwise it assumes legacy and runs `--phase legacy`, then автоматически запускает `--phase discovery`.
-- To skip auto-discovery after legacy: `FRAMEWORK_SKIP_DISCOVERY=1 ./install-framework.sh`.
-- To resume from last completed phase: `FRAMEWORK_RESUME=1 ./install-framework.sh`.
+  `run-protocol.py` chooses discovery.
+- Otherwise it assumes legacy.
+- To skip auto-discovery after legacy: `FRAMEWORK_SKIP_DISCOVERY=1`.
+- To resume from last completed phase: `FRAMEWORK_RESUME=1`.
 - Status line: `FRAMEWORK_STATUS_INTERVAL=10` (seconds between `[STATUS]` lines).
 - Watcher poll: `FRAMEWORK_WATCH_POLL=2`.
 - Stall detection: `FRAMEWORK_STALL_TIMEOUT=900` and `FRAMEWORK_STALL_KILL=1`.
@@ -225,19 +225,22 @@ Auto-detection:
 
 ### A) New project (clean host)
 1) `./install-framework.sh`
-2) Orchestrator runs `--phase discovery` (interactive interview → ТЗ/план/тест‑план).
+2) Run `codex` in the project root and say **"start"** to begin discovery.
+3) Discovery interview → ТЗ/план/тест‑план.
    - Pause command: type `/pause` to stop and resume later.
-3) User reviews outputs and confirms start of development.
-4) Start development:
+4) User reviews outputs and confirms start of development.
+5) Start development:
    `python3 framework/orchestrator/orchestrator.py --phase main`
-5) Dev flow completes → parallel review flow uses `framework/review/`.
-6) Optional post-run framework QA:
+6) Dev flow completes → parallel review flow uses `framework/review/`.
+7) Optional post-run framework QA:
    `python3 framework/orchestrator/orchestrator.py --phase post`
-7) Auto-publish (optional): set `FRAMEWORK_REPORTING_*` env vars before step 1.
+8) Auto-publish (optional): set `FRAMEWORK_REPORTING_*` env vars before step 1.
 
 ### B) Legacy project (migration + safety)
-1) `./install-framework.sh` (auto-detects legacy, runs `--phase legacy`)
-2) Legacy analysis completes, then auto-runs `--phase discovery` (interactive interview).
+1) `./install-framework.sh`
+2) Run `codex` and say **"start"**:
+   - Legacy analysis runs first (read-only).
+   - Затем discovery интервью в Codex.
    - Pause command: type `/pause` to stop and resume later.
 3) Review migration artifacts:
    - `framework/migration/legacy-snapshot.md`

@@ -764,11 +764,15 @@ def main():
 
     non_pause_failures = any(code not in (0, 2) for code in completed.values())
     failed_run = bool(blocked or run_error or non_pause_failures)
+    agent_flow = bool_from_env(os.getenv("FRAMEWORK_AGENT_FLOW"))
 
     print(f"Summary saved to {summary_run}")
     if args.phase == "legacy":
-        print("Next: start the discovery interview:")
-        print("  python3 framework/orchestrator/orchestrator.py --phase discovery")
+        if agent_flow:
+            print("Next: start the discovery interview in Codex (say \"start\").")
+        else:
+            print("Next: start the discovery interview:")
+            print("  python3 framework/orchestrator/orchestrator.py --phase discovery")
     elif args.phase == "discovery":
         if paused_tasks:
             print("Discovery paused. Re-run to continue:")

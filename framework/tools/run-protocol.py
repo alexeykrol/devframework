@@ -85,7 +85,16 @@ def determine_mode(default_phase: str | None) -> list[str]:
         return [default_phase]
     # auto-detect empty host vs legacy
     root = Path.cwd()
-    ignore = {"framework", "framework.zip", "install-framework.sh", ".git", ".gitignore", ".DS_Store"}
+    ignore = {
+        "framework",
+        "framework.zip",
+        "install-framework.sh",
+        "AGENTS.md",
+        "AGENTS.override.md",
+        ".git",
+        ".gitignore",
+        ".DS_Store",
+    }
     for entry in root.iterdir():
         if entry.name in ignore:
             continue
